@@ -73,9 +73,14 @@ async function main() {
   }
 
   // 2. Rust binary
-  run(cargoCommand, [...cargoRunner, "build", "--release", "--target", target], {
-    cwd: path.join(root, "src-tauri"),
-  });
+  // `--features custom-protocol` is mandatory: it embeds the built frontend and
+  // points the webview at it. A plain release build keeps devUrl (localhost:1420)
+  // and the portable exe would open an error page instead of the app.
+  run(
+    cargoCommand,
+    [...cargoRunner, "build", "--release", "--target", target, "--features", "custom-protocol"],
+    { cwd: path.join(root, "src-tauri") },
+  );
 
   // 3. Portable payload
   const exe = path.join(targetDir, "LocalNote.exe");

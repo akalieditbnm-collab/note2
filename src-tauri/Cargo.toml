@@ -13,6 +13,12 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 name = "LocalNote"
 path = "src/main.rs"
 
+[features]
+# `tauri/custom-protocol` swaps the dev-server URL for the assets embedded in the
+# binary. Without it a `cargo build --release` binary opens http://localhost:1420
+# and shows "localhost refused to connect" - so the portable build always enables it.
+custom-protocol = ["tauri/custom-protocol"]
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
