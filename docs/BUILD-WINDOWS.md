@@ -65,3 +65,18 @@ CARGO_XWIN=1 npm run build:windows:portable -- --target x86_64-pc-windows-msvc
 - [ ] تشغيل `LocalNote.exe` على ويندوز 10/11 والتأكد من ظهور النافذة (WebView2 مثبّت).
 - [ ] تجربة: إنشاء صفحة، كتابة عربية، تبديل اللغة من الإعدادات، إعادة تشغيل التطبيق والتأكد أن اللغة محفوظة.
 - [ ] تجربة النسخ الاحتياطي (Backup all notes) والاستيراد من Markdown.
+
+## 6) لماذا `--features custom-protocol` ضروري؟
+
+`tauri.conf.json` يحتوي `build.devUrl = http://localhost:1420` (خادم Vite في وضع التطوير).
+`cargo build --release` وحده يبني نسخة **تطوير**: الملف التنفيذي يفتح
+`http://localhost:1420` وتظهر رسالة `localhost refused to connect` (ERR_CONNECTION_REFUSED)
+لأن لا يوجد خادم يعمل. تفعيل فيتشر `custom-protocol` يجعل Tauri يستخدم بروتوكول
+`tauri://localhost` ويضمّن ملفات الواجهة المبنية (`dist/`) داخل الملف التنفيذي.
+
+- `src-tauri/Cargo.toml` يعرّف `custom-protocol = ["tauri/custom-protocol"]`.
+- `scripts/build-windows-portable.mjs` يمرّر `--features custom-protocol` تلقائيًا.
+- `npm run tauri build` يفعّله من نفسه (لذلك نسخة المثبّت كانت تعمل).
+
+علامة النجاح: حجم `LocalNote.exe` في النسخة المحمولة ≈ الملف الذي ينتجه
+`npm run tauri build` (‏11–12 ميجابايت)، وليس أصغر منه بمقدار ملحوظ.
