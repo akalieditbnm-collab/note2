@@ -31,11 +31,8 @@ npm run tauri build
 
 ```
 src-tauri/target/release/bundle/nsis/LocalNote_1.2.0_x64-setup.exe
-src-tauri/target/release/bundle/app/LocalNote.exe
+src-tauri/target/release/LocalNote.exe          ← نفس الملف الذي يُحزم في النسخة المحمولة
 ```
-
-تمت إضافة هدف `app` إلى `bundle.targets` بجانب `nsis`، لذا تحصل على الملف التنفيذي المباشر
-مع المثبّت في نفس الأمر.
 
 ## 3) البناء من نظام غير ويندوز (Linux CI)
 

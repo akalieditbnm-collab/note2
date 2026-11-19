@@ -84,7 +84,10 @@ The script accepts `--target` and detects cross-compilation via `cargo-xwin`, so
 CARGO_XWIN=1 npm run build:windows:portable -- --target x86_64-pc-windows-msvc
 ```
 
-`src-tauri/tauri.conf.json` now bundles both `nsis` (installer) and `app` (loose binary) targets, so `npm run tauri build` produces the normal `.exe` installer for distribution.
+`npm run tauri build` produces the normal NSIS installer
+(`src-tauri/target/release/bundle/nsis/LocalNote_<version>_x64-setup.exe`); the loose
+`src-tauri/target/release/LocalNote.exe` produced by the same build is exactly what the
+portable script packages, so both flavors are always in sync.
 
 ---
 

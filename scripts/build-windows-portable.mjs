@@ -2,9 +2,8 @@
 /**
  * Builds the Windows release binary and assembles a *portable* folder:
  *
- *   dist-portable/LocalNote-portable/
+ *   dist-portable/LocalNote-<version>-windows-x64-portable/
  *     LocalNote.exe
- *     WebView2Loader.dll        (when present in the build output)
  *     README.txt
  *   dist-portable/LocalNote-<version>-windows-x64-portable.zip
  *
@@ -12,14 +11,18 @@
  * still live in %LOCALAPPDATA%\LocalNote (SQLite), so the app behaves exactly
  * like the installed build once you launch the .exe.
  *
- * Usage (any host, including Linux via cargo-xwin):
+ * Works on Windows, Linux and macOS (cross-compiling via cargo-xwin):
  *   node scripts/build-windows-portable.mjs [--target x86_64-pc-windows-msvc]
+ *
+ * Env:
+ *   CARGO_XWIN=1   force `cargo xwin` (cross-compiling from a non-Windows host)
+ *   SKIP_WEB=1     reuse the existing dist/ instead of rebuilding the frontend
  */
 import { execFileSync } from "node:child_process";
-import { createWriteStream } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { createRequire } from "node:module";
+import { zipDirectory } from "./lib/zip.mjs";
 
 const require = createRequire(import.meta.url);
 const { version } = require("../package.json");
@@ -28,15 +31,27 @@ const root = path.resolve(import.meta.dirname, "..");
 const target = process.argv.includes("--target")
   ? process.argv[process.argv.indexOf("--target") + 1]
   : "x86_64-pc-windows-msvc";
-const cargoRunner = process.env.CARGO_XWIN === "1" ? ["xwin"] : [];
+
+const isWindowsHost = process.platform === "win32";
+const forceXwin = process.env.CARGO_XWIN === "1";
+const cargoRunner = forceXwin || (!isWindowsHost && target.includes("windows")) ? ["xwin"] : [];
 
 const outDir = path.join(root, "dist-portable");
 const appDir = path.join(outDir, `LocalNote-${version}-windows-x64-portable`);
 const targetDir = path.join(root, "src-tauri", "target", target, "release");
 
+/** `npm` is a `.cmd` shim on Windows, so it cannot be spawned directly. */
+const npmCommand = isWindowsHost ? "npm.cmd" : "npm";
+const cargoCommand = process.env.CARGO || "cargo";
+
 function run(command, args, options = {}) {
   console.log(`\n$ ${command} ${args.join(" ")}`);
-  return execFileSync(command, args, { stdio: "inherit", cwd: root, ...options });
+  return execFileSync(command, args, {
+    stdio: "inherit",
+    cwd: root,
+    shell: isWindowsHost && /\.(cmd|bat)$/i.test(command),
+    env: { ...process.env, ...options.env },
+  });
 }
 
 async function copyIfExists(from, to) {
@@ -53,10 +68,12 @@ async function main() {
   await fs.mkdir(appDir, { recursive: true });
 
   // 1. Frontend (Vite → dist/)
-  run("npm", ["run", "build"]);
+  if (process.env.SKIP_WEB !== "1") {
+    run(npmCommand, ["run", "build"]);
+  }
 
-  // 2. Rust binary (Tauri bundler reuses the compiled exe)
-  run("cargo", [...cargoRunner, "build", "--release", "--target", target], {
+  // 2. Rust binary
+  run(cargoCommand, [...cargoRunner, "build", "--release", "--target", target], {
     cwd: path.join(root, "src-tauri"),
   });
 
@@ -92,14 +109,14 @@ async function main() {
     "utf8",
   );
 
-  // 4. Zip
+  // 4. Zip (pure Node implementation: identical on Windows/Linux/macOS)
   const zipPath = path.join(outDir, `LocalNote-${version}-windows-x64-portable.zip`);
   await fs.rm(zipPath, { force: true });
-  run("zip", ["-r", "-9", path.basename(zipPath), path.basename(appDir)], { cwd: outDir });
+  const archive = await zipDirectory(appDir, zipPath);
 
   console.log(
     `\nPortable build ready: ${path.relative(root, zipPath)} ` +
-      `(LocalNote.exe ${sizeMb.toFixed(1)} MB)`,
+      `(LocalNote.exe ${sizeMb.toFixed(1)} MB, ${archive.files} files zipped)`,
   );
 }
 
