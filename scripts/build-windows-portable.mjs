@@ -48,7 +48,7 @@ function run(command, args, options = {}) {
   console.log(`\n$ ${command} ${args.join(" ")}`);
   return execFileSync(command, args, {
     stdio: "inherit",
-    cwd: root,
+    cwd: options.cwd ?? root,
     shell: isWindowsHost && /\.(cmd|bat)$/i.test(command),
     env: { ...process.env, ...options.env },
   });
