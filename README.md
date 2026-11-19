@@ -41,6 +41,61 @@ It brings the familiar, flexible block-based editing experience of modern produc
 - 💾 **Transparent Local Storage**: Inspect, copy, or open the live data and Markdown backup locations directly from Settings.
 - 🔒 **Private by Design**: Zero telemetry, analytics, authentication, or network APIs — fully functional offline, guarded by a strict CSP (`default-src 'self'`).
 
+
+---
+
+## Languages & Layout Direction
+
+LocalNote 1.2 ships a fully reviewed **Arabic** interface next to English.
+
+- **Switch language** in *Settings → Appearance → Language* (applies instantly, no restart).
+- **Full RTL layout**: the sidebar moves to the right, menus/breadcrumbs/chevrons mirror, and all spacing uses CSS logical properties (`inset-inline-*`, `padding-inline-*`) so nothing breaks in either direction.
+- **Arabic-first typography**: an Arabic-capable font stack is applied for the whole UI; code blocks, keyboard shortcuts, file paths and hex values stay LTR inside an RTL UI.
+- **Editor translates too**: the block editor's own slash menu / formatting toolbars load BlockNote's Arabic dictionary.
+- **Persisted in SQLite** (`settings.language`), with a `localStorage` mirror so the first paint is already in the right direction (no flash).
+- **Truly bidirectional text**: mixed Arabic/English paragraphs render correctly (no forced `unicode-bidi: isolate`).
+
+Adding another language = add a dictionary in `src/i18n/locales/`, register it in `src/i18n/index.tsx`; the Arabic file is type-checked against the English one (`satisfies TranslatedDictionary`), so keys can never drift apart. `src/i18n/i18n.test.ts` additionally fails the build when a key, placeholder or file is missing.
+
+---
+
+## Windows Portable Build
+
+For testing and side-by-side installs there is a **portable** target — a single folder with no installer, no registry writes and no admin rights:
+
+```bash
+npm run build:windows:portable
+```
+
+Output:
+
+```
+dist-portable/LocalNote-1.2.0-windows-x64-portable/
+  LocalNote.exe
+  README.txt
+dist-portable/LocalNote-1.2.0-windows-x64-portable.zip
+```
+
+Notes and settings still live in `%LOCALAPPDATA%\LocalNote\Data\localnote.db`, so the portable build and the `nsis` installer share the same data. Delete that folder to start fresh.
+
+The script accepts `--target` and detects cross-compilation via `cargo-xwin`, so the same command works on a Linux CI runner:
+
+```bash
+CARGO_XWIN=1 npm run build:windows:portable -- --target x86_64-pc-windows-msvc
+```
+
+`src-tauri/tauri.conf.json` now bundles both `nsis` (installer) and `app` (loose binary) targets, so `npm run tauri build` produces the normal `.exe` installer for distribution.
+
+---
+
+## Browser UI Preview (design review)
+
+```bash
+npm run preview:ui   # → http://localhost:4173/src/dev/preview.html
+```
+
+Runs the real React app in a browser with `@tauri-apps/api` swapped for `src/dev/tauriMock.ts` (in-memory notes) — handy for reviewing the Arabic/RTL layout without building the desktop binary. The mock is never bundled into the shipped app.
+
 ---
 
 ## Keyboard Shortcuts
@@ -115,6 +170,10 @@ LocalNote/
 │   ├── app/
 │   │   └── AppShell.tsx        # Top-level layout composition
 │   ├── components/             # Shared UI components (TitleBar, ContextMenu, Tooltip, …)
+│   ├── i18n/                    # UI translations (en/ar), direction & locale provider
+│   │   ├── index.tsx            # I18nProvider, useTranslation, imperative tGlobal
+│   │   ├── locales.ts           # Locale types, pluralisation & interpolation helpers
+│   │   └── locales/{en,ar}.ts   # Translation dictionaries (type-checked against each other)
 │   ├── features/
 │   │   ├── editor/             # BlockNote editor, slash menu, code blocks, save queue, TOC
 │   │   ├── export/             # Markdown serialization & backup

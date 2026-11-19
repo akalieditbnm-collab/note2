@@ -1,4 +1,5 @@
 import { Icon } from "../../components/Icon";
+import { useTranslation } from "../../i18n";
 
 type NewNoteButtonProps = {
   onClick: () => void;
@@ -6,20 +7,22 @@ type NewNoteButtonProps = {
 };
 
 export function NewNoteButton({ onClick, className = "" }: NewNoteButtonProps) {
+  const { t } = useTranslation();
+
   return (
     <button
       type="button"
       className={`sidebar-new-note-btn ${className}`.trim()}
-      aria-label="New page"
-      title="New page (Ctrl+N)"
+      aria-label={t("sidebar.newPage")}
+      title={`${t("sidebar.newPage")} (Ctrl+N)`}
       onClick={onClick}
     >
       <div className="sidebar-new-note-btn__left">
         <Icon name="plus" className="sidebar-new-note-btn__icon" />
-        <span className="sidebar-new-note-btn__label">New Note</span>
+        <span className="sidebar-new-note-btn__label">{t("sidebar.newNote")}</span>
       </div>
       <span className="sidebar-shortcut-badge" aria-hidden="true">
-        Ctrl N
+        {t("sidebar.shortcutNew")}
       </span>
     </button>
   );

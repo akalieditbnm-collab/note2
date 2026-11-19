@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import type { PartialBlock } from "@blocknote/core";
+import { useTranslation } from "../../i18n";
 
 type DocumentStatsProps = {
   blocks: PartialBlock[];
@@ -33,6 +34,7 @@ function extractTextFromBlocks(blocks: PartialBlock[]): string {
 }
 
 export function DocumentStats({ blocks, className = "" }: DocumentStatsProps) {
+  const { t } = useTranslation();
   const { words, chars } = useMemo(() => {
     const fullText = extractTextFromBlocks(blocks);
     const charCount = fullText.length;
@@ -42,11 +44,14 @@ export function DocumentStats({ blocks, className = "" }: DocumentStatsProps) {
 
   if (words === 0 && chars === 0) return null;
 
+  const wordLabel = t.plural({ one: t("editor.wordOne"), other: t("editor.wordOther") });
+  const charLabel = t.plural({ one: t("editor.charOne"), other: t("editor.charOther") });
+
   return (
-    <div className={`document-stats ${className}`.trim()} aria-label="Document statistics">
-      <span>{words} {words === 1 ? "word" : "words"}</span>
+    <div className={`document-stats ${className}`.trim()} aria-label={t("editor.stats")}>
+      <span>{wordLabel(words, { count: words })}</span>
       <span className="document-stats__separator">·</span>
-      <span>{chars} {chars === 1 ? "char" : "chars"}</span>
+      <span>{charLabel(chars, { count: chars })}</span>
     </div>
   );
 }

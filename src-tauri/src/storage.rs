@@ -105,28 +105,25 @@ mod tests {
     use tempfile::TempDir;
 
     #[test]
-    fn builds_expected_paths_from_windows_roots() {
-        let paths = StoragePaths::from_roots(
-            Path::new(r"C:\Users\Ada\AppData\Local"),
-            Path::new(r"C:\Users\Ada\Documents"),
-        );
+    fn builds_expected_paths_from_roots() {
+        // Compose the expectations with `Path::join` so the assertions are about
+        // the directory *layout* and stay valid on every host platform (the
+        // suite also runs on Linux/macOS in CI, where `\` is not a separator).
+        let local_app_data = Path::new("appdata-local");
+        let documents = Path::new("documents");
+        let paths = StoragePaths::from_roots(local_app_data, documents);
 
-        assert_eq!(
-            paths.data_root,
-            PathBuf::from(r"C:\Users\Ada\AppData\Local\LocalNote")
-        );
+        let data_root = local_app_data.join("LocalNote");
+        assert_eq!(paths.data_root, data_root);
         assert_eq!(
             paths.database_path,
-            PathBuf::from(r"C:\Users\Ada\AppData\Local\LocalNote\Data\localnote.db")
+            data_root.join("Data").join("localnote.db")
         );
         assert_eq!(
             paths.webview_data_path,
-            PathBuf::from(r"C:\Users\Ada\AppData\Local\LocalNote\WebView\main")
+            data_root.join("WebView").join("main")
         );
-        assert_eq!(
-            paths.backup_path,
-            PathBuf::from(r"C:\Users\Ada\Documents\LocalNote Backups")
-        );
+        assert_eq!(paths.backup_path, documents.join("LocalNote Backups"));
     }
 
     #[test]

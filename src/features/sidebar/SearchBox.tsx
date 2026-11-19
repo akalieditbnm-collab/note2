@@ -1,4 +1,5 @@
 import { Icon } from "../../components/Icon";
+import { useTranslation } from "../../i18n";
 
 type SearchBoxProps = {
   onClick: () => void;
@@ -6,20 +7,22 @@ type SearchBoxProps = {
 };
 
 export function SearchBox({ onClick, className = "" }: SearchBoxProps) {
+  const { t } = useTranslation();
+
   return (
     <button
       type="button"
       className={`sidebar-search-box ${className}`.trim()}
-      aria-label="Search notes"
-      title="Search notes (Ctrl+P)"
+      aria-label={t("sidebar.searchNotes")}
+      title={`${t("sidebar.searchNotes")} (Ctrl+P)`}
       onClick={onClick}
     >
       <div className="sidebar-search-box__left">
         <Icon name="search" className="sidebar-search-box__icon" />
-        <span className="sidebar-search-box__placeholder">Search</span>
+        <span className="sidebar-search-box__placeholder">{t("sidebar.search")}</span>
       </div>
       <span className="sidebar-shortcut-badge" aria-hidden="true">
-        Ctrl P
+        {t("sidebar.shortcutSearch")}
       </span>
     </button>
   );

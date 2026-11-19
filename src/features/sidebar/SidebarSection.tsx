@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
 
 type SidebarSectionProps = {
+  id: string;
   title: string;
   children: ReactNode;
 };
 
-export function SidebarSection({ title, children }: SidebarSectionProps) {
-  const headingId = `sidebar-${title.toLowerCase()}-heading`;
+export function SidebarSection({ id, title, children }: SidebarSectionProps) {
+  const headingId = `sidebar-${id}-heading`;
 
   return (
     <section className="sidebar-section" aria-labelledby={headingId}>

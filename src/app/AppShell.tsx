@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { I18nProvider, useTranslation } from "../i18n";
+import { useLanguage } from "../features/settings/useLanguage";
 import { EditorErrorBoundary } from "../features/editor/EditorErrorBoundary";
 import { LocalNoteEditor } from "../features/editor/LocalNoteEditor";
 import { useDocumentPersistence } from "../features/editor/useDocumentPersistence";
@@ -20,6 +22,20 @@ import { useTrash } from "../features/trash/useTrash";
 import { TrashDialog } from "../features/trash/TrashDialog";
 
 export function AppShell() {
+  const language = useLanguage();
+  return (
+    <I18nProvider
+      locale={language.preference}
+      onLocaleChange={(next) => void language.setLanguage(next)}
+      error={language.error}
+    >
+      <AppShellContent />
+    </I18nProvider>
+  );
+}
+
+export function AppShellContent() {
+  const { t, locale, languageError, setLocale } = useTranslation();
   const pageManagement = usePageManagement();
   const theme = useTheme();
   const accent = useAccentColor();
@@ -208,7 +224,7 @@ export function AppShell() {
             <button
               type="button"
               className="sidebar-mobile-backdrop"
-              aria-label="Close navigation"
+              aria-label={t("sidebar.closeNavigation")}
               onClick={() => setSidebarCollapsed(true)}
             />
           )}
@@ -220,8 +236,8 @@ export function AppShell() {
           onSelect={selectPage}
         />
         {pageManagement.loading || documentLoading || (pageManagement.activePage && !editorReady && !documentError) ? (
-        <main className="empty-document" aria-label="Loading pages">
-          <p>Loading note…</p>
+        <main className="empty-document" aria-label={t("editor.loadingPages")}>
+          <p>{t("editor.loadingNote")}</p>
         </main>
       ) : editorReady && loadedDocument ? (
         <EditorErrorBoundary
@@ -264,26 +280,26 @@ export function AppShell() {
           />
         </EditorErrorBoundary>
       ) : pageManagement.activePage && documentError ? (
-        <main className="empty-document" aria-label="Document unavailable">
+        <main className="empty-document" aria-label={t("editor.documentUnavailable")}>
           <div>
-            <h1>Note unavailable</h1>
+            <h1>{t("editor.noteUnavailable")}</h1>
             <p>{documentError}</p>
             <button
               type="button"
               onClick={() => void documents.loadPage(pageManagement.activePage!.id, false)}
             >
-              Retry loading
+              {t("editor.retryLoading")}
             </button>
           </div>
         </main>
       ) : (
-        <main className="empty-document" aria-label="No page selected">
+        <main className="empty-document" aria-label={t("editor.noPageSelected")}>
           <div>
             <img className="empty-document__icon" src="/app-icon.svg" width="80" height="80" alt="" />
-            <h1>No pages yet</h1>
-            <p>Create a page to start organizing your notes.</p>
+            <h1>{t("editor.noPagesYet")}</h1>
+            <p>{t("editor.noPagesBody")}</p>
             <button type="button" onClick={() => void createPage()}>
-              Create your first page
+              {t("editor.createFirstPage")}
             </button>
           </div>
         </main>
@@ -315,6 +331,9 @@ export function AppShell() {
         onStartMarkdownImport={() => void markdownImport.startImport()}
         onResetMarkdownImport={markdownImport.reset}
         onClose={closeSettings}
+        language={locale}
+        languageError={languageError}
+        onLanguageChange={(next) => setLocale(next)}
       />
       <TrashDialog
         open={trashOpen}

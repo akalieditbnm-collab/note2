@@ -214,7 +214,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   content: "";
   position: absolute;
   inset-block: 6px;
-  left: 0;
+  inset-inline-start: 0;
   width: 2px;
   border-radius: 2px;
   background: var(--color-accent);
@@ -235,7 +235,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   font-size: 0.75rem;
 }
 .editor-status-pill { padding: 0; background: transparent; border: 0; }
-.editor-status-retry { min-height: 1.6rem; margin-left: 0.35rem; color: var(--color-danger); text-decoration: underline; }
+.editor-status-retry { min-height: 1.6rem; margin-inline-start: 0.35rem; color: var(--color-danger); text-decoration: underline; }
 .document__save-error { margin-top: 0.4rem; }
 
 .table-of-contents { background: var(--color-sidebar); }
@@ -244,7 +244,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .table-of-contents__item--active::before {
   content: "";
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: 6px;
   bottom: 6px;
   width: 2px;
@@ -256,8 +256,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .quick-search__dialog { overflow: hidden; }
 .quick-search__content { display: contents; }
 .quick-search__input-wrap { position: relative; }
-.quick-search__input-icon { position: absolute; z-index: 1; left: 1rem; top: 50%; width: 1rem; transform: translateY(-50%); color: var(--color-text-subtle); pointer-events: none; }
-.quick-search__input { padding-left: 2.75rem; }
+.quick-search__input-icon { position: absolute; z-index: 1; inset-inline-start: 1rem; top: 50%; width: 1rem; transform: translateY(-50%); color: var(--color-text-subtle); pointer-events: none; }
+.quick-search__input { padding-inline-start: 2.75rem; }
 .quick-search__result mark { color: inherit; background: var(--color-accent-subtle); border-radius: 2px; }
 .quick-search__footer kbd { padding: 0.12rem 0.3rem; border: 0; border-radius: var(--radius-sm); background: var(--color-surface-hover); font-size: 0.75rem; }
 
@@ -372,7 +372,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   flex: 1;
   align-items: center;
   gap: 0.5rem;
-  padding-left: 0.75rem;
+  padding-inline-start: 0.75rem;
 }
 
 .titlebar__mark {
@@ -672,7 +672,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   min-width: 0;
   min-height: 1.85rem;
   align-items: center;
-  padding-left: calc(0.15rem + var(--tree-depth) * 0.7rem);
+  padding-inline-start: calc(0.15rem + var(--tree-depth) * 0.7rem);
   border-radius: var(--radius-md);
   transition: background var(--transition-fast);
 }
@@ -700,7 +700,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   padding: 0.28rem 0.25rem;
   color: var(--color-text-secondary);
   font-size: 0.79rem;
-  text-align: left;
+  text-align: start;
 }
 
 .page-tree__item[aria-current="page"] {
@@ -737,7 +737,7 @@ button.page-tree__disclosure:hover {
   height: 0.82rem;
   flex: 0 0 auto;
   color: var(--color-text-subtle);
-  margin-right: 0.35rem;
+  margin-inline-end: 0.35rem;
 }
 
 .page-tree__actions {
@@ -747,7 +747,7 @@ button.page-tree__disclosure:hover {
   flex: 0 0 auto;
   align-items: center;
   justify-content: flex-end;
-  padding-right: 0.2rem;
+  padding-inline-end: 0.2rem;
 }
 
 .page-tree__favorite {
@@ -787,7 +787,7 @@ button.page-tree__disclosure:hover {
   position: absolute;
   z-index: 50;
   top: calc(100% + 0.25rem);
-  right: 0;
+  inset-inline-end: 0;
   width: min(15.5rem, calc(100vw - 1rem));
   padding: 0.4rem;
   border: 0;
@@ -823,7 +823,7 @@ button.page-tree__disclosure:hover {
   color: var(--color-text);
   font-size: 0.875rem;
   line-height: 1.4;
-  text-align: left;
+  text-align: start;
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 
@@ -964,7 +964,7 @@ button.page-tree__disclosure:hover {
 }
 
 .sidebar-footer__badge {
-  margin-left: auto;
+  margin-inline-start: auto;
   padding: 0.05rem 0.45rem;
   border-radius: var(--radius-full);
   background: var(--color-surface-hover);
@@ -974,10 +974,10 @@ button.page-tree__disclosure:hover {
 }
 
 .sidebar-footer__stats {
-  margin-left: auto;
+  margin-inline-start: auto;
   color: var(--color-text-subtle);
   font-size: 0.68rem;
-  padding-right: 0.3rem;
+  padding-inline-end: 0.3rem;
 }
 
 .sidebar-icon-btn {
@@ -1003,7 +1003,7 @@ button.page-tree__disclosure:hover {
 .sidebar-footer__collapsed-badge {
   position: absolute;
   top: 0.35rem;
-  right: 0.35rem;
+  inset-inline-end: 0.35rem;
   width: 0.42rem;
   height: 0.42rem;
   border-radius: var(--radius-full);
@@ -1014,7 +1014,7 @@ button.page-tree__disclosure:hover {
 .sidebar__resizer {
   position: absolute;
   top: var(--radius-panel);
-  right: calc(0px - var(--panel-gap));
+  inset-inline-end: calc(0px - var(--panel-gap));
   bottom: var(--radius-panel);
   width: var(--panel-gap);
   cursor: col-resize;
@@ -1027,7 +1027,7 @@ button.page-tree__disclosure:hover {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: calc(var(--panel-gap) / 2 - 1px);
+  inset-inline-start: calc(var(--panel-gap) / 2 - 1px);
   width: 2px;
   background: transparent;
   content: "";
@@ -1159,7 +1159,7 @@ button.page-tree__disclosure:hover {
 .editor-title--clickable {
   cursor: text;
   padding: 0.15rem 0.4rem;
-  margin-left: -0.4rem;
+  margin-inline-start: -0.4rem;
 }
 
 .editor-title--clickable:hover {
@@ -1186,7 +1186,7 @@ button.page-tree__disclosure:hover {
   border: 1px solid var(--color-accent);
   border-radius: var(--radius-sm);
   padding: 0.15rem 0.4rem;
-  margin-left: -0.4rem;
+  margin-inline-start: -0.4rem;
   outline: none;
   box-shadow: 0 0 0 2px var(--color-accent-subtle, rgba(59, 130, 246, 0.15));
 }
@@ -1348,7 +1348,7 @@ button.page-tree__disclosure:hover {
 .table-of-contents__resizer {
   position: absolute;
   top: var(--radius-panel);
-  left: calc(0px - var(--panel-gap));
+  inset-inline-start: calc(0px - var(--panel-gap));
   bottom: var(--radius-panel);
   width: var(--panel-gap);
   cursor: col-resize;
@@ -1361,7 +1361,7 @@ button.page-tree__disclosure:hover {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: calc(var(--panel-gap) / 2 - 1px);
+  inset-inline-start: calc(var(--panel-gap) / 2 - 1px);
   width: 2px;
   background: transparent;
   content: "";
@@ -1459,27 +1459,27 @@ button.page-tree__disclosure:hover {
 }
 
 .table-of-contents__item--level-1 {
-  padding-left: 0;
+  padding-inline-start: 0;
 }
 
 .table-of-contents__item--level-2 {
-  padding-left: 0.65rem;
+  padding-inline-start: 0.65rem;
 }
 
 .table-of-contents__item--level-3 {
-  padding-left: 1.25rem;
+  padding-inline-start: 1.25rem;
 }
 
 .table-of-contents__item--level-4 {
-  padding-left: 1.85rem;
+  padding-inline-start: 1.85rem;
 }
 
 .table-of-contents__item--level-5 {
-  padding-left: 2.40rem;
+  padding-inline-start: 2.40rem;
 }
 
 .table-of-contents__item--level-6 {
-  padding-left: 2.90rem;
+  padding-inline-start: 2.90rem;
 }
 
 .table-of-contents__link {
@@ -1491,7 +1491,7 @@ button.page-tree__disclosure:hover {
   border-radius: var(--radius-md);
   color: var(--color-text-secondary);
   font-size: 0.75rem;
-  text-align: left;
+  text-align: start;
   transition: color var(--transition-fast), background var(--transition-fast);
 }
 
@@ -1641,7 +1641,7 @@ button.page-tree__disclosure:hover {
   color: var(--color-text);
   background: transparent;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
   transition: background var(--transition-fast);
 }
 
@@ -2604,7 +2604,7 @@ button.page-tree__disclosure:hover {
 
 .trash-dialog__search-icon {
   position: absolute;
-  left: 1.65rem;
+  inset-inline-start: 1.65rem;
   width: 0.88rem;
   height: 0.88rem;
   color: var(--color-text-subtle);
@@ -2631,7 +2631,7 @@ button.page-tree__disclosure:hover {
 
 .trash-dialog__search-clear {
   position: absolute;
-  right: 1.65rem;
+  inset-inline-end: 1.65rem;
   display: grid;
   width: 1.3rem;
   height: 1.3rem;
@@ -2746,7 +2746,7 @@ button.page-tree__disclosure:hover {
 .trash-dialog__item-date {
   color: var(--color-text-subtle);
   font-size: 0.7rem;
-  margin-left: 0.35rem;
+  margin-inline-start: 0.35rem;
   flex: 0 0 auto;
 }
 
@@ -2754,7 +2754,7 @@ button.page-tree__disclosure:hover {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  margin-left: 0.5rem;
+  margin-inline-start: 0.5rem;
   flex: 0 0 auto;
 }
 
@@ -2912,17 +2912,17 @@ button.page-tree__disclosure:hover {
 .sidebar-new-note-btn { color: var(--color-text); border: 1px solid transparent; background: var(--color-raised); box-shadow: var(--shadow-sm); }
 .sidebar-new-note-btn:hover { color: var(--color-text); background: var(--color-surface-hover); box-shadow: var(--shadow-sm); }
 .sidebar-section__heading { font-size: 0.75rem; letter-spacing: 0.04em; text-transform: none; }
-.page-tree__row:has(.page-tree__item[aria-current="page"])::before { content: ""; position: absolute; inset-block: 6px; left: 0; width: 2px; border-radius: 2px; background: var(--color-accent); }
+.page-tree__row:has(.page-tree__item[aria-current="page"])::before { content: ""; position: absolute; inset-block: 6px; inset-inline-start: 0; width: 2px; border-radius: 2px; background: var(--color-accent); }
 .editor-title { font-family: "Segoe UI Variable Display", "Segoe UI", sans-serif; font-size: clamp(1.8rem, 3vw, 2.35rem); }
 .editor-breadcrumb__part { display: inline-flex; align-items: center; min-width: 0; }
-.editor-metadata-row { width: fit-content; min-height: 2rem; padding: 0.25rem 0.65rem; border: 1px solid var(--color-border-subtle); border-left: 2px solid var(--color-accent); border-radius: 5px; background: var(--color-sidebar); font-family: var(--font-text); font-size: 0.75rem; }
+.editor-metadata-row { width: fit-content; min-height: 2rem; padding: 0.25rem 0.65rem; border: 1px solid var(--color-border-subtle); border-inline-start: 2px solid var(--color-accent); border-radius: 5px; background: var(--color-sidebar); font-family: var(--font-text); font-size: 0.75rem; }
 .editor-status-pill { padding: 0; border: 0; background: transparent; }
-.table-of-contents__item--active::before { content: ""; position: absolute; left: 0; top: 6px; bottom: 6px; width: 2px; border-radius: 2px; background: var(--color-accent); }
+.table-of-contents__item--active::before { content: ""; position: absolute; inset-inline-start: 0; top: 6px; bottom: 6px; width: 2px; border-radius: 2px; background: var(--color-accent); }
 .table-of-contents__link { min-height: 2rem; background: transparent; }
 .quick-search__content { display: contents; }
 .quick-search__input-wrap { position: relative; }
-.quick-search__input-icon { position: absolute; z-index: 1; left: 1rem; top: 50%; width: 1rem; transform: translateY(-50%); color: var(--color-text-subtle); }
-.quick-search__input { padding-left: 2.75rem; }
+.quick-search__input-icon { position: absolute; z-index: 1; inset-inline-start: 1rem; top: 50%; width: 1rem; transform: translateY(-50%); color: var(--color-text-subtle); }
+.quick-search__input { padding-inline-start: 2.75rem; }
 .quick-search__result mark { color: inherit; background: var(--color-accent-subtle); }
 .trash-dialog__item-actions { opacity: 0; }
 .trash-dialog__item:hover .trash-dialog__item-actions, .trash-dialog__item:focus-within .trash-dialog__item-actions { opacity: 1; }
@@ -3066,4 +3066,115 @@ button.page-tree__disclosure:hover {
   .settings__header, .settings__footer { padding-inline: 1rem; }
   .settings__section { margin-inline: 1rem; }
   .editor-breadcrumb { flex-wrap: wrap; }
+}
+
+/* Language picker (Settings → Appearance) */
+.settings__options--language {
+  align-items: stretch;
+}
+
+.settings__language-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.settings__language-option:has(input:checked) {
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+
+.settings__language-option span {
+  font-size: 0.85rem;
+}
+
+/* ==========================================================================
+   Bidirectional (RTL) support
+   --------------------------------------------------------------------------
+   Layout rules above now use logical properties (inset-inline-*, padding-inline-*,
+   margin-inline-*, text-align: start) so they follow `dir` automatically.
+   The block below only covers details that cannot be expressed logically:
+   directional glyphs, mirrored chevrons and Arabic-first typography.
+   ========================================================================== */
+
+/* Mirror only the directional *glyphs*, never their flex/grid ancestors. */
+.page-tree__disclosure-glyph,
+.block-context-menu__chevron,
+.block-context-menu__back-icon,
+.editor-breadcrumb__divider {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+[dir="rtl"] .page-tree__disclosure-glyph {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .page-tree__disclosure--collapsed .page-tree__disclosure-glyph {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .block-context-menu__chevron,
+[dir="rtl"] .block-context-menu__back-icon,
+[dir="rtl"] .editor-breadcrumb__divider {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .tooltip {
+  text-align: start;
+}
+
+[dir="rtl"] .badge,
+[dir="rtl"] .sidebar-shortcut-badge,
+[dir="rtl"] .block-context-menu__shortcut,
+[dir="rtl"] kbd,
+[dir="rtl"] code,
+[dir="rtl"] .settings__storage-path,
+[dir="rtl"] .settings__backup-path,
+[dir="rtl"] .settings__accent-hex-input {
+  /* Keyboard shortcuts, file paths and hex codes stay LTR inside an RTL UI. */
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+[dir="rtl"] body,
+[dir="rtl"] button,
+[dir="rtl"] input,
+[dir="rtl"] select,
+[dir="rtl"] textarea {
+  font-family: "Segoe UI Variable Text", "Segoe UI", "Noto Naskh Arabic",
+    "Noto Sans Arabic", "Dubai", "Tahoma", sans-serif;
+}
+
+[dir="rtl"] .editor-title,
+[dir="rtl"] .editor-title-input {
+  font-family: "Segoe UI Variable Display", "Segoe UI", "Noto Naskh Arabic",
+    "Noto Sans Arabic", "Dubai", "Tahoma", sans-serif;
+  letter-spacing: 0;
+}
+
+[dir="rtl"] .sidebar-section__heading,
+[dir="rtl"] .table-of-contents__heading {
+  /* Arabic script has no letter-spacing-friendly caps tracking. */
+  letter-spacing: 0;
+}
+
+/* BlockNote's own block content must inherit the reading direction. */
+[dir="rtl"] .bn-editor,
+[dir="rtl"] .bn-block-content,
+[dir="rtl"] .bn-inline-content {
+  text-align: start;
+}
+
+[dir="rtl"] .bn-block-content[data-content-type="codeBlock"] pre,
+[dir="rtl"] .bn-block-content[data-content-type="codeBlock"] code {
+  /* Code always reads left-to-right, even in an RTL document. */
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: isolate;
 }

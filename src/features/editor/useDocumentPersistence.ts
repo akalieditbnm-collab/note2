@@ -1,6 +1,7 @@
 import type { PartialBlock } from "@blocknote/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { tGlobal } from "../../i18n";
 import { documentApi } from "./api";
 import { MalformedDocumentError, parseDocument } from "./documentParsing";
 import { SerializedSaveQueue } from "./SerializedSaveQueue";
@@ -55,7 +56,9 @@ export function useDocumentPersistence() {
         savedRevisionRef.current = Math.max(savedRevisionRef.current, revision);
       } catch (reason) {
         setStatus("error");
-        setError(`Save failed. Your latest edits remain in memory. ${errorMessage(reason)}`);
+        setError(
+          tGlobal("error.saveFailed", { reason: errorMessage(reason) }),
+        );
         return false;
       }
     }
@@ -141,7 +144,9 @@ export function useDocumentPersistence() {
         scheduleAutosave();
       } catch (reason) {
         setStatus("error");
-        setError(`Could not serialize this note. ${errorMessage(reason)}`);
+        setError(
+          tGlobal("error.serializeFailed", { reason: errorMessage(reason) }),
+        );
       }
     },
     [scheduleAutosave],
@@ -152,9 +157,7 @@ export function useDocumentPersistence() {
     corruptedRef.current = true;
     setCorrupted(true);
     setStatus("error");
-    setError(
-      `BlockNote could not safely initialize this stored document. The original data has been preserved and autosave is disabled. ${reason.message}`,
-    );
+    setError(tGlobal("error.initFailed", { reason: reason.message }));
   }, []);
 
   useEffect(() => {
@@ -170,7 +173,9 @@ export function useDocumentPersistence() {
             await window.destroy();
           } catch (reason) {
             setStatus("error");
-            setError(`Could not close LocalNote after saving. ${errorMessage(reason)}`);
+            setError(
+              tGlobal("error.closeAfterSave", { reason: errorMessage(reason) }),
+            );
           }
         }
       })

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent } from "react";
 import { Icon } from "../../components/Icon";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { useTranslation } from "../../i18n";
 import type { Page } from "../pages/types";
 
 type PageTreeProps = {
@@ -42,6 +43,7 @@ function PageTreeItem({
   onDelete,
   onRequestDelete,
 }: PageTreeItemProps) {
+  const { t } = useTranslation();
   const [renaming, setRenaming] = useState(false);
   const [title, setTitle] = useState(page.title);
   const [moving, setMoving] = useState(false);
@@ -134,11 +136,14 @@ function PageTreeItem({
           <button
             type="button"
             className={`page-tree__disclosure${isExpanded ? "" : " page-tree__disclosure--collapsed"}`}
-            aria-label={`${isExpanded ? "Collapse" : "Expand"} ${page.title}`}
+            aria-label={isExpanded ? t("page.collapse", { title: page.title }) : t("page.expand", { title: page.title })}
             aria-expanded={isExpanded}
             onClick={() => onToggle(page.id)}
           >
-            <Icon name="chevron" />
+            {/* Only the glyph flips in RTL, never the whole control. */}
+            <span className="page-tree__disclosure-glyph">
+              <Icon name="chevron" />
+            </span>
           </button>
         ) : (
           <span className="page-tree__spacer" />
@@ -149,7 +154,7 @@ function PageTreeItem({
         {renaming ? (
           <input
             className="page-tree__rename"
-            aria-label={`Rename ${page.title}`}
+            aria-label={t("page.renameLabel", { title: page.title })}
             value={title}
             maxLength={200}
             autoFocus
@@ -184,8 +189,8 @@ function PageTreeItem({
               ref={menuButtonRef}
               type="button"
               className="page-tree__menu-button"
-              title="Page actions"
-              aria-label={`Actions for ${page.title}`}
+              title={t("page.actions")}
+              aria-label={t("page.actionsFor", { title: page.title })}
               aria-haspopup="menu"
               aria-expanded={menuOpen}
               onClick={(event) => {
@@ -206,7 +211,7 @@ function PageTreeItem({
                 ref={menuRef}
                 className={`page-menu${menuAbove ? " page-menu--above" : ""}`}
                 role="menu"
-                aria-label={`Actions for ${page.title}`}
+                aria-label={t("page.actionsFor", { title: page.title })}
                 onKeyDown={handleMenuKeyDown}
               >
                 <button
@@ -218,7 +223,7 @@ function PageTreeItem({
                   }}
                 >
                   <Icon name="star" />
-                  {page.isFavorite ? "Remove from favorites" : "Add to favorites"}
+                  {page.isFavorite ? t("page.removeFavorite") : t("page.addFavorite")}
                 </button>
                 <button
                   type="button"
@@ -228,7 +233,7 @@ function PageTreeItem({
                     setRenaming(true);
                   }}
                 >
-                  <Icon name="pencil" /> Rename
+                  <Icon name="pencil" /> {t("common.rename")}
                 </button>
                 <button
                   type="button"
@@ -239,7 +244,7 @@ function PageTreeItem({
                     if (created) onToggle(page.id, true);
                   }}
                 >
-                  <Icon name="folder-plus" /> New child page
+                  <Icon name="folder-plus" /> {t("page.newChild")}
                 </button>
                 <div className="page-menu__separator" role="separator" />
                 <button
@@ -251,7 +256,7 @@ function PageTreeItem({
                     void onMove(page.id, page.parentId, siblingIndex - 1);
                   }}
                 >
-                  <Icon name="arrow-up" /> Move up
+                  <Icon name="arrow-up" /> {t("page.moveUp")}
                 </button>
                 <button
                   type="button"
@@ -262,7 +267,7 @@ function PageTreeItem({
                     void onMove(page.id, page.parentId, siblingIndex + 1);
                   }}
                 >
-                  <Icon name="arrow-down" /> Move down
+                  <Icon name="arrow-down" /> {t("page.moveDown")}
                 </button>
                 <button
                   type="button"
@@ -272,7 +277,7 @@ function PageTreeItem({
                     setMoving(true);
                   }}
                 >
-                  <Icon name="move" /> Move to…
+                  <Icon name="move" /> {t("page.moveTo")}
                 </button>
                 <div className="page-menu__separator" role="separator" />
                 <button
@@ -284,7 +289,7 @@ function PageTreeItem({
                     onRequestDelete(page);
                   }}
                 >
-                  <Icon name="trash" /> Delete
+                  <Icon name="trash" /> {t("common.delete")}
                 </button>
               </div>
             )}
@@ -297,11 +302,11 @@ function PageTreeItem({
           <label>
             Parent
             <select
-              aria-label={`New parent for ${page.title}`}
+              aria-label={t("page.moveParentLabel", { title: page.title })}
               value={moveParentId}
               onChange={(event) => setMoveParentId(event.target.value)}
             >
-              <option value="">Top level</option>
+              <option value="">{t("page.moveTopLevel")}</option>
               {pages
                 .filter((candidate) => candidate.id !== page.id)
                 .map((candidate) => (
@@ -312,10 +317,10 @@ function PageTreeItem({
             </select>
           </label>
           <button type="button" onClick={() => void commitMove()}>
-            Move
+            {t("common.move")}
           </button>
           <button type="button" onClick={() => setMoving(false)}>
-            Cancel
+            {t("common.cancel")}
           </button>
         </div>
       )}
@@ -349,6 +354,7 @@ function PageTreeItem({
 }
 
 export function PageTree(props: PageTreeProps) {
+  const { t } = useTranslation();
   const { activePageId, pages, onDelete } = props;
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [pendingDeletePage, setPendingDeletePage] = useState<Page | null>(null);
@@ -388,7 +394,7 @@ export function PageTree(props: PageTreeProps) {
   };
 
   if (!pages.length) {
-    return <p className="page-tree__empty">No pages yet</p>;
+    return <p className="page-tree__empty">{t("sidebar.noPages")}</p>;
   }
 
   return (
@@ -409,10 +415,12 @@ export function PageTree(props: PageTreeProps) {
 
       <ConfirmDialog
         open={Boolean(pendingDeletePage)}
-        title="Move to Trash"
-        message={`Move "${pendingDeletePage?.title || "Untitled"}" to Trash? Direct children will move up one level.`}
-        confirmLabel="Move to Trash"
-        cancelLabel="Cancel"
+        title={t("page.deleteTitle")}
+        message={t("page.deleteMessage", {
+          title: pendingDeletePage?.title?.trim() || t("common.untitled"),
+        })}
+        confirmLabel={t("page.deleteConfirm")}
+        cancelLabel={t("common.cancel")}
         variant="danger"
         onConfirm={async () => {
           if (pendingDeletePage) {

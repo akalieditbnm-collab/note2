@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import type { PartialBlock } from "@blocknote/core";
 import { Icon } from "../../components/Icon";
 import { Tooltip } from "../../components/Tooltip";
+import { useTranslation } from "../../i18n";
 import { DocumentStats } from "./DocumentStats";
 import type { SaveStatus } from "./types";
 import type { ExportStatus, MarkdownSerializer } from "../export/useMarkdownExport";
@@ -28,15 +29,19 @@ type EditorHeaderProps = {
   onToggleToc?: () => void;
 };
 
-const statusConfig: Record<
-  SaveStatus,
-  { label: string; dotClass: string }
-> = {
-  saved: { label: "Saved on this device", dotClass: "status-dot--saved" },
-  saving: { label: "Saving locally…", dotClass: "status-dot--saving" },
-  unsaved: { label: "Unsaved changes", dotClass: "status-dot--unsaved" },
-  error: { label: "Save failed", dotClass: "status-dot--error" },
+const statusDotClass: Record<SaveStatus, string> = {
+  saved: "status-dot--saved",
+  saving: "status-dot--saving",
+  unsaved: "status-dot--unsaved",
+  error: "status-dot--error",
 };
+
+const statusLabelKey = {
+  saved: "editor.saved",
+  saving: "editor.saving",
+  unsaved: "editor.unsaved",
+  error: "editor.saveFailed",
+} as const;
 
 export function EditorHeader({
   title,
@@ -58,6 +63,7 @@ export function EditorHeader({
   isTocVisible = true,
   onToggleToc,
 }: EditorHeaderProps) {
+  const { t } = useTranslation();
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState(title);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -152,10 +158,13 @@ export function EditorHeader({
     }
   };
 
-  const currentStatus = statusConfig[saveStatus];
+  const currentStatus = {
+    label: t(statusLabelKey[saveStatus]),
+    dotClass: statusDotClass[saveStatus],
+  };
 
   return (
-    <header className="editor-header" aria-label="Note header">
+    <header className="editor-header" aria-label={t("editor.header")}>
       {/* Breadcrumb row */}
       <div className="editor-breadcrumb">
         <Icon name="document" className="editor-breadcrumb__icon" />
@@ -163,7 +172,7 @@ export function EditorHeader({
           <span className="editor-breadcrumb__part" key={crumb.id}>
             {index > 0 && <span className="editor-breadcrumb__divider">/</span>}
             <span className={index === breadcrumbs.length - 1 ? "editor-breadcrumb__current" : "editor-breadcrumb__segment"}>
-              {crumb.title || "Untitled"}
+              {crumb.title || t("editor.untitled")}
             </span>
           </span>
         ))}
@@ -178,8 +187,8 @@ export function EditorHeader({
             className="editor-title-input"
             value={titleInput}
             maxLength={200}
-            aria-label="Edit note title"
-            placeholder="Untitled"
+            aria-label={t("editor.editTitle")}
+            placeholder={t("editor.untitled")}
             onChange={(event) => setTitleInput(event.target.value)}
             onKeyDown={handleTitleKeyDown}
             onBlur={() => void commitTitleRename()}
@@ -188,7 +197,7 @@ export function EditorHeader({
           <h1
             className="editor-title editor-title--clickable"
             onClick={() => setIsEditingTitle(true)}
-            title="Click or press F2 to rename"
+            title={t("editor.renameTitle")}
             tabIndex={0}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " " || event.key === "F2") {
@@ -197,17 +206,17 @@ export function EditorHeader({
               }
             }}
           >
-            {title || "Untitled"}
+            {title || t("editor.untitled")}
           </h1>
         )}
 
         <div className="editor-actions">
           {/* Quick Action: Favorite */}
-          <Tooltip content={isFavorite ? "Remove from favorites" : "Add to favorites"}>
+          <Tooltip content={isFavorite ? t("page.removeFavorite") : t("page.addFavorite")}>
             <button
               type="button"
               className={`editor-action-btn ${isFavorite ? "editor-action-btn--favorite-active" : ""}`}
-              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+              aria-label={isFavorite ? t("page.removeFavorite") : t("page.addFavorite")}
               aria-pressed={isFavorite}
               onClick={() => onSetFavorite(!isFavorite)}
             >
@@ -217,11 +226,11 @@ export function EditorHeader({
 
           {/* Quick Action: Table of Contents Toggle */}
           {onToggleToc && (
-            <Tooltip content={isTocVisible ? "Hide table of contents" : "Show table of contents"}>
+            <Tooltip content={isTocVisible ? t("editor.hideToc") : t("editor.showToc")}>
               <button
                 type="button"
                 className={`editor-action-btn ${isTocVisible ? "editor-action-btn--active" : ""}`}
-                aria-label={isTocVisible ? "Hide table of contents" : "Show table of contents"}
+                aria-label={isTocVisible ? t("editor.hideToc") : t("editor.showToc")}
                 aria-pressed={isTocVisible}
                 onClick={onToggleToc}
               >
@@ -232,11 +241,11 @@ export function EditorHeader({
 
           {/* Quick Action: Focus Mode */}
           {onToggleFocusMode && (
-            <Tooltip content={isFocusMode ? "Exit focus mode (Ctrl+Shift+F)" : "Focus mode (Ctrl+Shift+F)"}>
+            <Tooltip content={isFocusMode ? t("editor.exitFocusMode") : t("editor.focusMode")}>
               <button
                 type="button"
                 className={`editor-action-btn ${isFocusMode ? "editor-action-btn--active" : ""}`}
-                aria-label={isFocusMode ? "Exit focus mode" : "Focus mode"}
+                aria-label={isFocusMode ? t("editor.exitFocusModeShort") : t("editor.focusModeShort")}
                 aria-pressed={isFocusMode}
                 onClick={onToggleFocusMode}
               >
@@ -247,12 +256,12 @@ export function EditorHeader({
 
           {/* More Actions Menu */}
           <div className="editor-more-menu-wrapper">
-            <Tooltip content="More actions">
+            <Tooltip content={t("editor.moreActions")}>
               <button
                 ref={moreTriggerRef}
                 type="button"
                 className="editor-action-btn"
-                aria-label="Page actions"
+                aria-label={t("page.actions")}
                 aria-haspopup="menu"
                 aria-expanded={moreMenuOpen}
                 onClick={() => setMoreMenuOpen((curr) => !curr)}
@@ -266,7 +275,7 @@ export function EditorHeader({
                 ref={moreMenuRef}
                 className="document__page-menu"
                 role="menu"
-                aria-label="Page actions"
+                aria-label={t("page.actions")}
                 onKeyDown={handleMenuKeyDown}
               >
                 <button
@@ -278,7 +287,7 @@ export function EditorHeader({
                   }}
                 >
                   <Icon name="star" />
-                  <span>{isFavorite ? "Remove from favorites" : "Add to favorites"}</span>
+                  <span>{isFavorite ? t("page.removeFavorite") : t("page.addFavorite")}</span>
                 </button>
                 <button
                   type="button"
@@ -289,7 +298,7 @@ export function EditorHeader({
                   }}
                 >
                   <Icon name="pencil" />
-                  <span>Rename</span>
+                  <span>{t("common.rename")}</span>
                 </button>
                 <button
                   type="button"
@@ -300,7 +309,7 @@ export function EditorHeader({
                   }}
                 >
                   <Icon name="folder-plus" />
-                  <span>New child page</span>
+                  <span>{t("page.newChild")}</span>
                 </button>
                 <button
                   type="button"
@@ -312,7 +321,7 @@ export function EditorHeader({
                   }}
                 >
                   <Icon name="download" />
-                  <span>{exportStatus === "exporting" ? "Exporting…" : "Export Markdown"}</span>
+                  <span>{exportStatus === "exporting" ? t("editor.exporting") : t("editor.exportMarkdown")}</span>
                 </button>
               </div>
             )}
@@ -321,13 +330,13 @@ export function EditorHeader({
       </div>
 
       {/* Metadata Row: Save Status, Last edited time, Document stats */}
-      <div className="editor-metadata-row" aria-label="Local document status">
+      <div className="editor-metadata-row" aria-label={t("editor.statusLabel")}>
         <div className={`editor-status-pill editor-status-pill--${saveStatus}`}>
           <span className={`status-dot ${currentStatus.dotClass}`} aria-hidden="true" />
           <span role="status" aria-live="polite">{currentStatus.label}</span>
           {saveStatus === "error" && (
             <button type="button" className="editor-status-retry" onClick={onRetrySave}>
-              Retry
+              {t("editor.retry")}
             </button>
           )}
         </div>
@@ -341,7 +350,7 @@ export function EditorHeader({
       {saveError && <p className="document__save-error" role="alert">{saveError}</p>}
       {exportStatus === "success" && (
         <p className="document__export-feedback" aria-live="polite">
-          Markdown exported.
+          {t("editor.exported")}
         </p>
       )}
       {exportError && (

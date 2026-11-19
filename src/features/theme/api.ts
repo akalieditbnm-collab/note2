@@ -9,3 +9,11 @@ export const themeApi = {
   getAccentColor: () => invoke<string>("get_accent_color"),
   setAccentColor: (hex: string) => invoke<string>("set_accent_color", { hex }),
 };
+
+export type LanguagePreference = "en" | "ar";
+
+export const languageApi = {
+  get: () => invoke<LanguagePreference>("get_language"),
+  set: (language: LanguagePreference) =>
+    invoke<LanguagePreference>("set_language", { language }),
+};

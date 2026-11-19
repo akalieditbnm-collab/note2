@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "../../components/Icon";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { useTranslation } from "../../i18n";
 import type { Page } from "../pages/types";
 
 type TrashDialogProps = {
@@ -13,13 +14,15 @@ type TrashDialogProps = {
   onEmptyTrash: () => Promise<boolean>;
 };
 
-function formatDeletionDate(isoString?: string | null): string {
+function formatDeletionDate(isoString: string | null | undefined, locale: string): string {
   if (!isoString) {
     return "";
   }
   try {
     const date = new Date(isoString);
-    return date.toLocaleDateString(undefined, {
+    // `ar-EG` gives Arabic month names while keeping Western digits readable;
+    // the browser falls back gracefully if the locale is unavailable.
+    return date.toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", {
       month: "short",
       day: "numeric",
       hour: "2-digit",
@@ -39,6 +42,7 @@ export function TrashDialog({
   onDeletePermanently,
   onEmptyTrash,
 }: TrashDialogProps) {
+  const { t, locale } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [pendingPermanentDelete, setPendingPermanentDelete] = useState<Page | null>(null);
   const [confirmEmptyOpen, setConfirmEmptyOpen] = useState(false);
@@ -108,7 +112,7 @@ export function TrashDialog({
             <div className="trash-dialog__title-wrap">
               <Icon name="trash" className="trash-dialog__header-icon" />
               <h2 id="trash-dialog-title" className="trash-dialog__title">
-                Trash
+                {t("trash.title")}
               </h2>
               {trashPages.length > 0 && (
                 <span className="trash-dialog__count-badge">
@@ -123,16 +127,16 @@ export function TrashDialog({
                   type="button"
                   className="trash-dialog__empty-btn"
                   onClick={() => setConfirmEmptyOpen(true)}
-                  title="Empty entire trash"
+                  title={t("trash.emptyHint")}
                 >
-                  Empty Trash
+                  {t("trash.emptyAction")}
                 </button>
               )}
               <button
                 type="button"
                 className="trash-dialog__close-btn"
                 onClick={onClose}
-                aria-label="Close trash dialog"
+                aria-label={t("trash.close")}
               >
                 <Icon name="x" />
               </button>
@@ -146,7 +150,7 @@ export function TrashDialog({
                 ref={searchInputRef}
                 type="text"
                 className="trash-dialog__search-input"
-                placeholder="Filter trashed notes..."
+                placeholder={t("trash.filterPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -155,7 +159,7 @@ export function TrashDialog({
                   type="button"
                   className="trash-dialog__search-clear"
                   onClick={() => setSearchQuery("")}
-                  aria-label="Clear search filter"
+                  aria-label={t("trash.clearFilter")}
                 >
                   <Icon name="x" />
                 </button>
@@ -165,22 +169,22 @@ export function TrashDialog({
 
           <div className="trash-dialog__content">
             {loading && trashPages.length === 0 ? (
-              <div className="trash-dialog__state">Loading trash...</div>
+              <div className="trash-dialog__state">{t("trash.loading")}</div>
             ) : trashPages.length === 0 ? (
               <div className="trash-dialog__empty-state">
                 <div className="trash-dialog__empty-icon-wrap">
                   <Icon name="trash" className="trash-dialog__empty-icon" />
                 </div>
-                <p className="trash-dialog__empty-title">Trash is empty</p>
+                <p className="trash-dialog__empty-title">{t("trash.emptyTitle")}</p>
                 <p className="trash-dialog__empty-desc">
-                  Notes moved to trash will appear here.
+                  {t("trash.emptyDescription")}
                 </p>
               </div>
             ) : filteredPages.length === 0 ? (
               <div className="trash-dialog__empty-state">
-                <p className="trash-dialog__empty-title">No matching notes</p>
+                <p className="trash-dialog__empty-title">{t("trash.noMatches")}</p>
                 <p className="trash-dialog__empty-desc">
-                  No notes found matching "{searchQuery}".
+                  {t("trash.noMatchesBody", { query: searchQuery })}
                 </p>
               </div>
             ) : (
@@ -193,11 +197,11 @@ export function TrashDialog({
                         className="trash-dialog__item-icon"
                       />
                       <span className="trash-dialog__item-title">
-                        {page.title.trim() || "Untitled"}
+                        {page.title.trim() || t("common.untitled")}
                       </span>
                       {page.deletedAt && (
                         <span className="trash-dialog__item-date">
-                          {formatDeletionDate(page.deletedAt)}
+                          {formatDeletionDate(page.deletedAt, locale)}
                         </span>
                       )}
                     </div>
@@ -207,21 +211,21 @@ export function TrashDialog({
                         type="button"
                         className="trash-dialog__action-btn trash-dialog__action-btn--restore"
                         onClick={() => void onRestore(page.id)}
-                        title="Restore note"
-                        aria-label={`Restore ${page.title}`}
+                        title={t("trash.restoreTitle")}
+                        aria-label={t("trash.restoreAria", { title: page.title })}
                       >
                         <Icon name="rotate-ccw" />
-                        <span>Restore</span>
+                        <span>{t("trash.restore")}</span>
                       </button>
                       <button
                         type="button"
                         className="trash-dialog__action-btn trash-dialog__action-btn--delete"
                         onClick={() => setPendingPermanentDelete(page)}
-                        title="Delete permanently"
-                        aria-label={`Permanently delete ${page.title}`}
+                        title={t("trash.deleteTitle")}
+                        aria-label={t("trash.deleteAria", { title: page.title })}
                       >
                         <Icon name="trash" />
-                        <span>Delete</span>
+                        <span>{t("common.delete")}</span>
                       </button>
                     </div>
                   </li>
@@ -234,10 +238,12 @@ export function TrashDialog({
 
       <ConfirmDialog
         open={Boolean(pendingPermanentDelete)}
-        title="Permanently Delete Note"
-        message={`Are you sure you want to permanently delete "${pendingPermanentDelete?.title || "Untitled"}"? This action cannot be undone.`}
-        confirmLabel="Delete Permanently"
-        cancelLabel="Cancel"
+        title={t("trash.confirmDeleteTitle")}
+        message={t("trash.confirmDeleteMessage", {
+          title: pendingPermanentDelete?.title?.trim() || t("common.untitled"),
+        })}
+        confirmLabel={t("trash.confirmDeleteAction")}
+        cancelLabel={t("common.cancel")}
         variant="danger"
         onConfirm={async () => {
           if (pendingPermanentDelete) {
@@ -251,10 +257,10 @@ export function TrashDialog({
 
       <ConfirmDialog
         open={confirmEmptyOpen}
-        title="Empty Trash"
-        message={`Are you sure you want to permanently delete all ${trashPages.length} notes in Trash? This action cannot be undone.`}
-        confirmLabel="Empty Trash"
-        cancelLabel="Cancel"
+        title={t("trash.confirmEmptyTitle")}
+        message={t("trash.confirmEmptyMessage", { count: trashPages.length })}
+        confirmLabel={t("trash.emptyAction")}
+        cancelLabel={t("common.cancel")}
         variant="danger"
         onConfirm={async () => {
           setConfirmEmptyOpen(false);

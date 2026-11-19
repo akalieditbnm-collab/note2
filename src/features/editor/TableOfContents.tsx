@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import type { PartialBlock } from "@blocknote/core";
 import { Icon } from "../../components/Icon";
+import { useTranslation } from "../../i18n";
 
 export type HeadingItem = {
   id: string;
@@ -20,7 +21,10 @@ type TableOfContentsProps = {
   className?: string;
 };
 
-function extractHeadings(blocks: PartialBlock[]): HeadingItem[] {
+function extractHeadings(
+  blocks: PartialBlock[],
+  headingFallback: (level: number) => string,
+): HeadingItem[] {
   const headings: HeadingItem[] = [];
 
   for (const block of blocks) {
@@ -44,7 +48,7 @@ function extractHeadings(blocks: PartialBlock[]): HeadingItem[] {
         headings.push({
           id: String(block.id),
           level,
-          text: text.trim() || `Heading ${level}`,
+          text: text.trim() || headingFallback(level),
         });
       }
     }
@@ -63,9 +67,16 @@ export function TableOfContents({
   onResizerDoubleClick,
   className = "",
 }: TableOfContentsProps) {
+  const { t } = useTranslation();
   const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null);
 
-  const headings = useMemo(() => extractHeadings(blocks), [blocks]);
+  const headings = useMemo(
+    () =>
+      extractHeadings(blocks, (level) =>
+        t("toc.headingFallback", { level }),
+      ),
+    [blocks, t],
+  );
 
   useEffect(() => {
     if (!editorRoot || headings.length === 0) {
@@ -123,14 +134,14 @@ export function TableOfContents({
     <aside
       className={`table-of-contents ${className}`.trim()}
       style={style}
-      aria-label="Table of contents"
+      aria-label={t("toc.label")}
     >
       <div
         className="table-of-contents__resizer"
         role="separator"
         aria-orientation="vertical"
-        aria-label="Table of contents resize handle"
-        title="Double click to reset or drag to resize"
+        aria-label={t("toc.resizeHandle")}
+        title={t("toc.resizeHint")}
         onPointerDown={onResizerPointerDown}
         onDoubleClick={onResizerDoubleClick}
       />
@@ -138,14 +149,14 @@ export function TableOfContents({
       <div className="table-of-contents__header">
         <div className="table-of-contents__title-row">
           <Icon name="list" className="table-of-contents__icon" />
-          <span className="table-of-contents__heading">Contents</span>
+          <span className="table-of-contents__heading">{t("toc.title")}</span>
         </div>
         {onToggleVisible && (
           <button
             type="button"
             className="table-of-contents__close-btn"
-            aria-label="Hide table of contents"
-            title="Hide table of contents"
+            aria-label={t("editor.hideToc")}
+            title={t("editor.hideToc")}
             onClick={onToggleVisible}
           >
             <Icon name="x" />
@@ -156,7 +167,7 @@ export function TableOfContents({
       <div className="table-of-contents__body">
         {headings.length === 0 ? (
           <p className="table-of-contents__empty">
-            No headings in this note yet. Use # or slash command to add headings.
+            {t("toc.empty")}
           </p>
         ) : (
           <nav className="table-of-contents__nav">

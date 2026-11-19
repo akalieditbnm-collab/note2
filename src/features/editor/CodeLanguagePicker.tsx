@@ -9,6 +9,7 @@ import {
 import type { CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "../../components/Icon";
+import { useTranslation } from "../../i18n";
 import { codeLanguages } from "./codeBlock";
 import { CodeLanguageIcon } from "./CodeLanguageIcon";
 
@@ -30,6 +31,7 @@ type CodeLanguageControlProps = {
 };
 
 export function CodeLanguageControl({ select }: CodeLanguageControlProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -209,19 +211,19 @@ export function CodeLanguageControl({ select }: CodeLanguageControlProps) {
         ref={searchRef}
         type="search"
         spellCheck={false}
-        aria-label="Search code languages"
+        aria-label={t("code.searchLanguages")}
         aria-controls={listboxId}
         aria-activedescendant={filteredLanguages[selectedIndex]
           ? `${listboxId}-${filteredLanguages[selectedIndex].id}`
           : undefined}
-        placeholder="Search languages"
+        placeholder={t("code.searchPlaceholder")}
         value={query}
         onChange={(event) => {
           setQuery(event.target.value);
           setSelectedIndex(0);
         }}
       />
-      <div id={listboxId} className="code-language-picker__list" role="listbox" aria-label="Code languages">
+      <div id={listboxId} className="code-language-picker__list" role="listbox" aria-label={t("code.languages")}>
         {filteredLanguages.length ? filteredLanguages.map((language, index) => (
           <button
             id={`${listboxId}-${language.id}`}
@@ -239,19 +241,19 @@ export function CodeLanguageControl({ select }: CodeLanguageControlProps) {
             </span>
             {language.id === activeLanguage && <Icon name="check" />}
           </button>
-        )) : <p>No languages found</p>}
+        )) : <p>{t("code.noLanguages")}</p>}
       </div>
     </div>
   ) : null;
 
   return (
-    <div className="code-block-toolbar" role="group" aria-label="Code block controls">
+    <div className="code-block-toolbar" role="group" aria-label={t("code.controls")}>
       <div ref={pickerRef} className="code-language-picker" onKeyDown={handleKeyboard}>
         <button
           ref={triggerRef}
           type="button"
           className="code-language-picker__trigger"
-          aria-label={`Code language: ${activeName}`}
+          aria-label={t("code.languageAria", { name: activeName })}
           aria-haspopup="listbox"
           aria-expanded={open}
           onClick={() => open ? close(false) : setOpen(true)}
@@ -266,12 +268,18 @@ export function CodeLanguageControl({ select }: CodeLanguageControlProps) {
         <button
           type="button"
           className={`code-block-toolbar__copy code-block-toolbar__copy--${copyState}`}
-          aria-label={copyState === "copied" ? "Copied" : "Copy code"}
-          title={copyState === "error" ? "Copy failed. Try again." : "Copy code to clipboard"}
+          aria-label={copyState === "copied" ? t("code.copied") : t("code.copyAria")}
+          title={copyState === "error" ? t("code.copyFailedHint") : t("code.copyHint")}
           onClick={() => void copyCode()}
         >
           <Icon name={copyState === "copied" ? "check" : "copy"} />
-          <span aria-live="polite">{copyState === "copied" ? "Copied" : copyState === "error" ? "Copy failed" : "Copy"}</span>
+          <span aria-live="polite">
+            {copyState === "copied"
+              ? t("code.copied")
+              : copyState === "error"
+                ? t("code.copyFailed")
+                : t("code.copy")}
+          </span>
         </button>
       </div>
     </div>

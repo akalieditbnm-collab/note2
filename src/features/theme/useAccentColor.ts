@@ -2,9 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import { applyAccentColor, DEFAULT_ACCENT_COLOR, isValidHex, normalizeHex } from "./accent";
 import { themeApi } from "./api";
 
+export type AccentErrorCode = "invalid" | "save";
+
 export function useAccentColor() {
   const [accentColor, setAccentColorState] = useState<string>(DEFAULT_ACCENT_COLOR);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<AccentErrorCode | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -28,7 +30,7 @@ export function useAccentColor() {
   const setAccentColor = useCallback(
     async (next: string) => {
       if (!isValidHex(next)) {
-        setError("Invalid hex color code.");
+        setError("invalid");
         return;
       }
       const normalized = normalizeHex(next);
@@ -41,7 +43,7 @@ export function useAccentColor() {
       } catch {
         applyAccentColor(previous);
         setAccentColorState(previous);
-        setError("Accent color could not be saved.");
+        setError("save");
       }
     },
     [accentColor],

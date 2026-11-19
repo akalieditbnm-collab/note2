@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { tGlobal } from "../../i18n";
 import { documentApi } from "../editor/api";
 import { parseDocument } from "../editor/documentParsing";
 import { pageApi } from "../pages/api";
@@ -43,16 +44,16 @@ export function useNotesBackup(flush?: () => Promise<boolean>) {
     runningRef.current = true;
     setStatus("in_progress");
     setError(null);
-    setProgress({ current: 0, total: 0, noteTitle: "Saving current changes…" });
+    setProgress({ current: 0, total: 0, noteTitle: tGlobal("backup.progressSaving") });
 
     try {
       if (flush && !(await flush())) {
         setStatus("error");
-        setError("Could not save pending edits before starting backup.");
+        setError(tGlobal("error.backupFlushFailed"));
         return false;
       }
 
-      setProgress({ current: 0, total: 0, noteTitle: "Loading all notes…" });
+      setProgress({ current: 0, total: 0, noteTitle: tGlobal("backup.progressLoading") });
       const pages = await pageApi.list();
 
       if (pages.length === 0) {
@@ -68,7 +69,7 @@ export function useNotesBackup(flush?: () => Promise<boolean>) {
 
       for (let i = 0; i < total; i++) {
         const page = pages[i];
-        const displayTitle = page.title || "Untitled";
+        const displayTitle = page.title || tGlobal("common.untitled");
         setProgress({
           current: i + 1,
           total,
@@ -93,7 +94,7 @@ export function useNotesBackup(flush?: () => Promise<boolean>) {
       setProgress({
         current: total,
         total,
-        noteTitle: "Writing files to Documents…",
+        noteTitle: tGlobal("backup.progressWriting"),
       });
 
       const result = await exportApi.backupNotes(notesToBackup);
@@ -104,7 +105,7 @@ export function useNotesBackup(flush?: () => Promise<boolean>) {
       return true;
     } catch (reason) {
       setStatus("error");
-      setError(`Backup failed: ${errorMessage(reason)}`);
+      setError(tGlobal("error.backupFailed", { reason: errorMessage(reason) }));
       return false;
     } finally {
       runningRef.current = false;
@@ -115,7 +116,7 @@ export function useNotesBackup(flush?: () => Promise<boolean>) {
     try {
       await exportApi.openBackupFolder();
     } catch (reason) {
-      setError(`Could not open backup folder: ${errorMessage(reason)}`);
+      setError(tGlobal("error.openBackupFolder", { reason: errorMessage(reason) }));
     }
   }, []);
 

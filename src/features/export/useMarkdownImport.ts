@@ -1,5 +1,6 @@
 import { BlockNoteEditor } from "@blocknote/core";
 import { useCallback, useRef, useState } from "react";
+import { tGlobal } from "../../i18n";
 import { localNoteSchema } from "../editor/codeBlock";
 import { exportApi, type MarkdownImportResult } from "./api";
 
@@ -11,7 +12,7 @@ function errorMessage(error: unknown): string {
 
 function titleFromFileName(fileName: string): string {
   const title = fileName.replace(/\.md$/i, "").trim();
-  return title || "Untitled";
+  return title || tGlobal("common.untitled");
 }
 
 export function useMarkdownImport(
@@ -50,7 +51,7 @@ export function useMarkdownImport(
       setImportedCount(result.importedCount);
       setStatus("success");
     } catch (reason) {
-      setError(`Could not import Markdown: ${errorMessage(reason)}`);
+      setError(tGlobal("error.importFailed", { reason: errorMessage(reason) }));
       setStatus("error");
     }
   }, [onImported]);

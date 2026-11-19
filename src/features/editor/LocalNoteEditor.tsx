@@ -1,8 +1,10 @@
 import type { Block, PartialBlock } from "@blocknote/core";
+import { ar as blockNoteAr, en as blockNoteEn } from "@blocknote/core/locales";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
 import { useCreateBlockNote } from "@blocknote/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "../../i18n";
 import type { SpellcheckPreference } from "../settings/api";
 import type { SaveStatus } from "./types";
 import type {
@@ -81,6 +83,9 @@ type LocalNoteEditorProps = {
   onToggleFocusMode?: () => void;
 };
 
+/** BlockNote's own slash-menu / formatting dictionaries, keyed by app locale. */
+const blockNoteDictionaries = { en: blockNoteEn, ar: blockNoteAr };
+
 export function LocalNoteEditor({
   pageId,
   title,
@@ -101,13 +106,16 @@ export function LocalNoteEditor({
   isFocusMode = false,
   onToggleFocusMode,
 }: LocalNoteEditorProps) {
+  const { t, locale } = useTranslation();
   const editorRootRef = useRef<HTMLElement>(null);
   const [editorRoot, setEditorRoot] = useState<HTMLElement | null>(null);
   const tocState = useTocState();
   const theme = useResolvedTheme();
+  const dictionary = useMemo(() => blockNoteDictionaries[locale], [locale]);
   const editor = useCreateBlockNote({
     schema: localNoteSchema,
     initialContent: initialBlocks.length ? initialBlocks : undefined,
+    dictionary,
   });
 
   useEffect(() => {
@@ -263,7 +271,7 @@ export function LocalNoteEditor({
           <section
             ref={editorRootRef}
             className="localnote-editor"
-            aria-label="Block editor"
+            aria-label={t("editor.blocks")}
           >
             <BlockNoteView
               editor={editor}

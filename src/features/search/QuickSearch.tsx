@@ -3,6 +3,7 @@ import { searchApi } from "./api";
 import type { SearchResult } from "./api";
 import { Dialog } from "../../components/Dialog";
 import { Icon } from "../../components/Icon";
+import { useTranslation } from "../../i18n";
 
 type SearchStatus = "initial" | "searching" | "results" | "empty" | "error";
 
@@ -24,6 +25,7 @@ function HighlightedText({ text, query }: { text: string; query: string }) {
 }
 
 export function QuickSearch({ open, onClose, onSelect }: QuickSearchProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -82,7 +84,7 @@ export function QuickSearch({ open, onClose, onSelect }: QuickSearchProps) {
   return (
     <Dialog
       open={open}
-      title="Search notes"
+      title={t("search.title")}
       onClose={onClose}
       className="quick-search__dialog"
       backdropClassName="quick-search"
@@ -90,7 +92,7 @@ export function QuickSearch({ open, onClose, onSelect }: QuickSearchProps) {
     >
       <section className="quick-search__content">
         <h2 id="quick-search-title" className="quick-search__title">
-          Search notes
+          {t("search.title")}
         </h2>
         <div className="quick-search__input-wrap">
           <Icon name="search" className="quick-search__input-icon" />
@@ -98,10 +100,10 @@ export function QuickSearch({ open, onClose, onSelect }: QuickSearchProps) {
             ref={inputRef}
             className="quick-search__input"
           type="search"
-          aria-label="Search pages and notes"
+          aria-label={t("search.inputLabel")}
           aria-controls="quick-search-results"
           aria-activedescendant={results[selectedIndex] ? `search-result-${results[selectedIndex].pageId}` : undefined}
-          placeholder="Search pages and notes…"
+          placeholder={t("search.placeholder")}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           onKeyDown={(event) => {
@@ -124,17 +126,17 @@ export function QuickSearch({ open, onClose, onSelect }: QuickSearchProps) {
 
         <div className="quick-search__body" id="quick-search-results">
           {status === "initial" && (
-            <p className="quick-search__state">Search page titles and saved note text.</p>
+            <p className="quick-search__state">{t("search.hint")}</p>
           )}
           {status === "searching" && (
-            <p className="quick-search__state" role="status">Searching…</p>
+            <p className="quick-search__state" role="status">{t("search.searching")}</p>
           )}
           {status === "empty" && (
-            <p className="quick-search__state">No matching pages</p>
+            <p className="quick-search__state">{t("search.empty")}</p>
           )}
           {status === "error" && (
             <p className="quick-search__state quick-search__state--error" role="alert">
-              Search could not be completed.
+              {t("search.error")}
             </p>
           )}
           {status === "results" && (
@@ -158,9 +160,9 @@ export function QuickSearch({ open, onClose, onSelect }: QuickSearchProps) {
           )}
         </div>
         <footer className="quick-search__footer">
-          <span><kbd>↑↓</kbd> Navigate</span>
-          <span><kbd>Enter</kbd> Open</span>
-          <span><kbd>Esc</kbd> Close</span>
+          <span><kbd>↑↓</kbd> {t("search.navigate")}</span>
+          <span><kbd>Enter</kbd> {t("search.open")}</span>
+          <span><kbd>Esc</kbd> {t("search.close")}</span>
         </footer>
       </section>
     </Dialog>

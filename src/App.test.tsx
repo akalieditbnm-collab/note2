@@ -268,6 +268,10 @@ function mockPageCommands(
       if (command === "set_accent_color") return Promise.resolve(args.hex);
       if (command === "get_spellcheck") return Promise.resolve("system");
       if (command === "set_spellcheck") return Promise.resolve(args.preference);
+      if (command === "get_language") {
+        return Promise.resolve(window.localStorage.getItem("localnote.locale") ?? "en");
+      }
+      if (command === "set_language") return Promise.resolve(args.language);
       throw new Error(`Unexpected command: ${command}`);
     },
   );
@@ -303,6 +307,11 @@ describe("LocalNote page management", () => {
     vi.useRealTimers();
     delete document.documentElement.dataset.theme;
     delete document.documentElement.dataset.accent;
+    delete document.documentElement.dataset.locale;
+    delete document.documentElement.dataset.dir;
+    document.documentElement.removeAttribute("dir");
+    document.documentElement.removeAttribute("lang");
+    window.localStorage.clear();
   });
 
   it("shows a calm empty state when the database has no pages", async () => {
@@ -344,7 +353,7 @@ describe("LocalNote page management", () => {
     expect(within(dialog).getByRole("heading", { name: "Storage" })).toBeVisible();
     expect(within(dialog).getByRole("heading", { name: "Backup" })).toBeVisible();
     expect(within(dialog).getByRole("heading", { name: "About" })).toBeVisible();
-    expect(within(dialog).getByText("Version 1.1.2")).toBeVisible();
+    expect(within(dialog).getByText(/^Version \d+\.\d+\.\d+$/)).toBeVisible();
     expect(within(dialog).getByText(/stored only on this device/i)).toBeVisible();
     expect(await within(dialog).findByText("C:\\Users\\User\\AppData\\Local\\LocalNote")).toBeVisible();
 
@@ -880,6 +889,61 @@ describe("LocalNote page management", () => {
 
     expect(screen.getByRole("button", { name: "Alpha" })).toBeVisible();
     expect(invokeMock).not.toHaveBeenCalledWith("rename_page", expect.anything());
+  });
+
+  it("switches the whole interface to Arabic and back, persisting the choice", async () => {
+    mockPageCommands([page("alpha", "Alpha")]);
+    render(<App />);
+    await screen.findByRole("heading", { name: "Alpha" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Open settings" }));
+    const dialog = screen.getByRole("dialog", { name: "Settings" });
+
+    // Language picker lives in Appearance.
+    fireEvent.click(within(dialog).getByRole("radio", { name: "العربية" }));
+
+    await waitFor(() =>
+      expect(invokeMock).toHaveBeenCalledWith("set_language", { language: "ar" }),
+    );
+    expect(await screen.findByRole("dialog", { name: "الإعدادات" })).toBeVisible();
+    expect(document.documentElement.dir).toBe("rtl");
+    expect(document.documentElement.lang).toBe("ar");
+
+    // Sidebar, search box and settings all read Arabic now.
+    expect(screen.getByRole("button", { name: "فتح الإعدادات" })).toBeVisible();
+    expect(screen.getByText("المفضلة")).toBeVisible();
+    expect(screen.getByRole("button", { name: "بحث في الملاحظات" })).toBeVisible();
+
+    // Back to English.
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "الإعدادات" })).getByRole("radio", {
+        name: "English",
+      }),
+    );
+    await waitFor(() =>
+      expect(invokeMock).toHaveBeenCalledWith("set_language", { language: "en" }),
+    );
+    expect(document.documentElement.dir).toBe("ltr");
+    expect(screen.getByRole("button", { name: "Open settings" })).toBeVisible();
+  });
+
+  it("shows localized Arabic states for search and trash", async () => {
+    // Start in Arabic via the persisted preference.
+    window.localStorage.setItem("localnote.locale", "ar");
+    mockPageCommands([page("alpha", "Alpha")]);
+    render(<App />);
+    await screen.findByRole("button", { name: "فتح الإعدادات" });
+    window.localStorage.removeItem("localnote.locale");
+
+    fireEvent.click(screen.getByRole("button", { name: "بحث في الملاحظات" }));
+    expect(await screen.findByRole("dialog", { name: "بحث في الملاحظات" })).toBeVisible();
+    expect(screen.getByPlaceholderText("ابحث في الصفحات والملاحظات…")).toBeVisible();
+    fireEvent.keyDown(screen.getByPlaceholderText("ابحث في الصفحات والملاحظات…"), {
+      key: "Escape",
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "فتح المهملات" }));
+    expect(await screen.findByRole("heading", { name: "المهملات" })).toBeVisible();
   });
 
   it("requires deliberate delete confirmation", async () => {

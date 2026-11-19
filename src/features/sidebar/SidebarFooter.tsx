@@ -1,5 +1,6 @@
 import type { RefObject } from "react";
 import { Icon } from "../../components/Icon";
+import { useTranslation } from "../../i18n";
 
 type SidebarFooterProps = {
   settingsTriggerRef: RefObject<HTMLButtonElement | null>;
@@ -18,6 +19,8 @@ export function SidebarFooter({
   pageCount,
   isCollapsed = false,
 }: SidebarFooterProps) {
+  const { t } = useTranslation();
+
   if (isCollapsed) {
     return (
       <footer className="sidebar-footer sidebar-footer--collapsed">
@@ -25,8 +28,8 @@ export function SidebarFooter({
           <button
             type="button"
             className="sidebar-icon-btn sidebar-icon-btn--trash"
-            aria-label="Open trash"
-            title={`Trash${trashCount > 0 ? ` (${trashCount})` : ""}`}
+            aria-label={t("sidebar.openTrash")}
+            title={`${t("sidebar.trash")}${trashCount > 0 ? ` (${trashCount})` : ""}`}
             onClick={onOpenTrash}
           >
             <Icon name="trash" />
@@ -39,8 +42,8 @@ export function SidebarFooter({
           ref={settingsTriggerRef}
           type="button"
           className="sidebar-icon-btn"
-          aria-label="Open settings"
-          title="Settings"
+          aria-label={t("sidebar.openSettings")}
+          title={t("sidebar.settings")}
           onClick={onOpenSettings}
         >
           <Icon name="settings" />
@@ -56,12 +59,12 @@ export function SidebarFooter({
           <button
             type="button"
             className="sidebar-footer__btn"
-            aria-label="Open trash"
-            title="Trash"
+            aria-label={t("sidebar.openTrash")}
+            title={t("sidebar.trash")}
             onClick={onOpenTrash}
           >
             <Icon name="trash" className="sidebar-footer__icon" />
-            <span>Trash</span>
+            <span>{t("sidebar.trash")}</span>
             {trashCount > 0 && (
               <span className="sidebar-footer__badge">{trashCount}</span>
             )}
@@ -74,18 +77,20 @@ export function SidebarFooter({
           ref={settingsTriggerRef}
           type="button"
           className="sidebar-footer__btn"
-          aria-label="Open settings"
-          title="Settings"
+          aria-label={t("sidebar.openSettings")}
+          title={t("sidebar.settings")}
           onClick={onOpenSettings}
         >
           <Icon name="settings" className="sidebar-footer__icon" />
-          <span>Settings</span>
+          <span>{t("sidebar.settings")}</span>
           {pageCount !== undefined && pageCount > 0 && (
             <span
               className="sidebar-footer__stats"
-              title={`${pageCount} notes stored locally`}
+              title={t("sidebar.notesStoredOther", { count: pageCount })}
             >
-              {pageCount} {pageCount === 1 ? "note" : "notes"}
+              {pageCount === 1
+                ? t("sidebar.notesStoredOne")
+                : t("sidebar.notesStoredOther", { count: pageCount })}
             </span>
           )}
         </button>

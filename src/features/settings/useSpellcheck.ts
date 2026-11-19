@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { spellcheckApi, type SpellcheckPreference } from "./api";
 
+export type SpellcheckErrorCode = "load" | "save";
+
 export function useSpellcheck() {
   const [preference, setPreference] = useState<SpellcheckPreference>("system");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<SpellcheckErrorCode | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -12,7 +14,7 @@ export function useSpellcheck() {
         if (active) setPreference(stored);
       },
       () => {
-        if (active) setError("Spellcheck preference could not be loaded.");
+        if (active) setError("load");
       },
     );
     return () => {
@@ -28,7 +30,7 @@ export function useSpellcheck() {
       await spellcheckApi.set(next);
     } catch {
       setPreference(previous);
-      setError("Spellcheck preference could not be saved.");
+      setError("save");
     }
   }, [preference]);
 

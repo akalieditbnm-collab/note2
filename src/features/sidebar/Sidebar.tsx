@@ -1,4 +1,5 @@
 import { Icon } from "../../components/Icon";
+import { useTranslation } from "../../i18n";
 import type { Page } from "../pages/types";
 import { PageTree } from "./PageTree";
 import { SidebarPageList } from "./SidebarPageList";
@@ -57,16 +58,18 @@ export function Sidebar({
   onResizerPointerDown,
   onResizerDoubleClick,
 }: SidebarProps) {
+  const { t } = useTranslation();
+
   if (isCollapsed) {
     return (
-      <aside className="sidebar sidebar--collapsed" aria-label="Workspace navigation">
+      <aside className="sidebar sidebar--collapsed" aria-label={t("sidebar.navigation")}>
         <div className="sidebar__scroll-area sidebar__scroll-area--collapsed">
-          <img className="sidebar__product-icon" src="/app-icon.svg" width="32" height="32" alt="LocalNote" />
+          <img className="sidebar__product-icon" src="/app-icon.svg" width="32" height="32" alt={t("app.name")} />
           <button
             type="button"
             className="sidebar__icon-button"
-            aria-label="Expand sidebar"
-            title="Expand sidebar (Ctrl+\)"
+            aria-label={t("sidebar.expand")}
+            title={`${t("sidebar.expand")} (Ctrl+\\)`}
             onClick={onToggleCollapse}
           >
             <Icon name="sidebar" />
@@ -75,8 +78,8 @@ export function Sidebar({
           <button
             type="button"
             className="sidebar__icon-button"
-            aria-label="New page"
-            title="New page (Ctrl+N)"
+            aria-label={t("sidebar.newPage")}
+            title={`${t("sidebar.newPage")} (Ctrl+N)`}
             onClick={() => void createPage()}
           >
             <Icon name="plus" />
@@ -85,8 +88,8 @@ export function Sidebar({
           <button
             type="button"
             className="sidebar__icon-button"
-            aria-label="Search notes"
-            title="Search notes (Ctrl+P)"
+            aria-label={t("sidebar.searchNotes")}
+            title={`${t("sidebar.searchNotes")} (Ctrl+P)`}
             onClick={onOpenSearch}
           >
             <Icon name="search" />
@@ -105,8 +108,8 @@ export function Sidebar({
           className="sidebar__resizer"
           role="separator"
           aria-orientation="vertical"
-          aria-label="Sidebar resize handle"
-          title="Double click to reset or drag to resize"
+          aria-label={t("sidebar.resizeHandle")}
+          title={t("sidebar.resizeHint")}
           onPointerDown={onResizerPointerDown}
           onDoubleClick={onResizerDoubleClick}
         />
@@ -115,11 +118,11 @@ export function Sidebar({
   }
 
   return (
-    <aside className="sidebar" aria-label="Workspace navigation">
+    <aside className="sidebar" aria-label={t("sidebar.navigation")}>
       <div className="sidebar__scroll-area">
         <div className="sidebar__product">
           <img src="/app-icon.svg" width="32" height="32" alt="" />
-          <span>LocalNote</span>
+          <span>{t("app.name")}</span>
         </div>
         {/* Top header row: New Note Button + Collapse Toggle */}
         <div className="sidebar__header-row">
@@ -127,8 +130,8 @@ export function Sidebar({
           <button
             type="button"
             className="sidebar__collapse-button"
-            aria-label="Collapse sidebar"
-            title="Collapse sidebar (Ctrl+\)"
+            aria-label={t("sidebar.collapse")}
+            title={`${t("sidebar.collapse")} (Ctrl+\\)`}
             onClick={onToggleCollapse}
           >
             <Icon name="sidebar" />
@@ -141,17 +144,17 @@ export function Sidebar({
         </div>
 
         {/* Favorites Section */}
-        <SidebarSection title="Favorites">
+        <SidebarSection id="favorites" title={t("sidebar.favorites")}>
           <SidebarPageList
             pages={favoritePages}
             activePageId={activePageId}
-            emptyMessage="No favorites yet"
+            emptyMessage={t("sidebar.noFavorites")}
             onSelect={selectPage}
           />
         </SidebarSection>
 
         {/* Pages Tree Section */}
-        <SidebarSection title="Pages">
+        <SidebarSection id="pages" title={t("sidebar.pages")}>
           <PageTree
             pages={pages}
             activePageId={activePageId}
@@ -167,7 +170,7 @@ export function Sidebar({
         {error && (
           <div className="sidebar__error" role="alert">
             <span>{error}</span>
-            <button type="button" onClick={clearError}>Dismiss</button>
+            <button type="button" onClick={clearError}>{t("common.dismiss")}</button>
           </div>
         )}
       </div>
@@ -184,8 +187,8 @@ export function Sidebar({
         className="sidebar__resizer"
         role="separator"
         aria-orientation="vertical"
-        aria-label="Sidebar resize handle"
-        title="Double click to reset or drag to resize"
+        aria-label={t("sidebar.resizeHandle")}
+        title={t("sidebar.resizeHint")}
         onPointerDown={onResizerPointerDown}
         onDoubleClick={onResizerDoubleClick}
       />

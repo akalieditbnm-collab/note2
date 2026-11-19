@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { themeApi, type ThemePreference } from "./api";
 
+/** Error codes are resolved to localised text by the settings dialog. */
+export type ThemeErrorCode = "load" | "save";
+
 function applyTheme(preference: ThemePreference) {
   if (preference === "system") delete document.documentElement.dataset.theme;
   else document.documentElement.dataset.theme = preference;
@@ -8,7 +11,7 @@ function applyTheme(preference: ThemePreference) {
 
 export function useTheme() {
   const [preference, setPreference] = useState<ThemePreference>("system");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ThemeErrorCode | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -19,7 +22,7 @@ export function useTheme() {
         applyTheme(stored);
       },
       () => {
-        if (active) setError("Theme preference could not be loaded.");
+        if (active) setError("load");
       },
     );
     return () => {
@@ -37,7 +40,7 @@ export function useTheme() {
     } catch {
       applyTheme(previous);
       setPreference(previous);
-      setError("Theme preference could not be saved.");
+      setError("save");
     }
   }, [preference]);
 

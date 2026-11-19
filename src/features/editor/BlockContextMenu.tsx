@@ -3,8 +3,10 @@ import type { CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import type { Block, BlockNoteEditor } from "@blocknote/core";
 import { Icon } from "../../components/Icon";
+import { useTranslation } from "../../i18n";
 import {
   transformBlock,
+  transformOptionLabel,
   transformOptions,
   type TransformOption,
 } from "./blockTransform";
@@ -25,6 +27,7 @@ export function BlockContextMenu({
   editor,
   onClose,
 }: BlockContextMenuProps) {
+  const { t } = useTranslation();
   const menuRef = useRef<HTMLDivElement>(null);
   const [showSubmenu, setShowSubmenu] = useState(false);
   const [adjustedPos, setAdjustedPos] = useState<{ top: number; left: number } | null>(null);
@@ -132,13 +135,16 @@ export function BlockContextMenu({
     visibility: adjustedPos ? "visible" : "hidden",
   };
 
-  const currentTypeLabel = transformOptions.find(
-    (opt) =>
-      opt.type === targetBlock.type &&
-      (!opt.props ||
-        (opt.props.level &&
-          (targetBlock.props as { level?: number })?.level === opt.props.level)),
-  )?.label || "Block";
+  const currentTypeLabel = (() => {
+    const match = transformOptions.find(
+      (opt) =>
+        opt.type === targetBlock.type &&
+        (!opt.props ||
+          (opt.props.level &&
+            (targetBlock.props as { level?: number })?.level === opt.props.level)),
+    );
+    return match ? transformOptionLabel(t, match) : t("block.block");
+  })();
 
   return createPortal(
     <div
@@ -146,7 +152,7 @@ export function BlockContextMenu({
       className="block-context-menu"
       style={style}
       role="menu"
-      aria-label="Block Actions"
+      aria-label={t("block.menu")}
     >
       {showSubmenu ? (
         <div className="block-context-menu__submenu-view">
@@ -156,9 +162,10 @@ export function BlockContextMenu({
               className="block-context-menu__back-button"
               onClick={() => setShowSubmenu(false)}
             >
-              ← Back
+              <span className="block-context-menu__back-icon" aria-hidden="true">←</span>{" "}
+              {t("common.back")}
             </button>
-            <span className="block-context-menu__header-title">Turn into</span>
+            <span className="block-context-menu__header-title">{t("block.turnIntoTitle")}</span>
           </div>
           <div className="block-context-menu__options-list">
             {transformOptions.map((option) => (
@@ -170,7 +177,7 @@ export function BlockContextMenu({
                 onClick={() => handleTransform(option)}
               >
                 <span className="block-context-menu__mark">{option.mark}</span>
-                <span>{option.label}</span>
+                <span>{transformOptionLabel(t, option)}</span>
               </button>
             ))}
           </div>
@@ -185,9 +192,12 @@ export function BlockContextMenu({
           >
             <span className="block-context-menu__item-left">
               <span className="block-context-menu__mark">⇄</span>
-              <span>Turn into...</span>
+              <span>{t("block.turnInto")}</span>
             </span>
-            <span className="block-context-menu__badge">{currentTypeLabel} ›</span>
+            <span className="block-context-menu__badge">
+              {currentTypeLabel}{" "}
+              <span aria-hidden="true" className="block-context-menu__chevron">›</span>
+            </span>
           </button>
 
           <div className="block-context-menu__separator" role="separator" />
@@ -200,7 +210,7 @@ export function BlockContextMenu({
           >
             <span className="block-context-menu__item-left">
               <Icon name="copy" />
-              <span>Duplicate</span>
+              <span>{t("common.duplicate")}</span>
             </span>
             <kbd className="block-context-menu__shortcut">Ctrl+D</kbd>
           </button>
@@ -213,9 +223,9 @@ export function BlockContextMenu({
           >
             <span className="block-context-menu__item-left">
               <Icon name="trash" />
-              <span>Delete</span>
+              <span>{t("common.delete")}</span>
             </span>
-            <kbd className="block-context-menu__shortcut">Del</kbd>
+            <kbd className="block-context-menu__shortcut">{t("shortcut.del")}</kbd>
           </button>
 
           <div className="block-context-menu__separator" role="separator" />
@@ -228,7 +238,7 @@ export function BlockContextMenu({
           >
             <span className="block-context-menu__item-left">
               <span className="block-context-menu__mark">✂</span>
-              <span>Cut</span>
+              <span>{t("common.cut")}</span>
             </span>
             <kbd className="block-context-menu__shortcut">Ctrl+X</kbd>
           </button>
@@ -241,7 +251,7 @@ export function BlockContextMenu({
           >
             <span className="block-context-menu__item-left">
               <Icon name="copy" />
-              <span>Copy</span>
+              <span>{t("common.copy")}</span>
             </span>
             <kbd className="block-context-menu__shortcut">Ctrl+C</kbd>
           </button>

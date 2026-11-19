@@ -1,6 +1,7 @@
 import { useId, useRef } from "react";
 import { Icon } from "./Icon";
 import { Dialog } from "./Dialog";
+import { useTranslation } from "../i18n";
 
 type ConfirmDialogProps = {
   open: boolean;
@@ -17,12 +18,13 @@ export function ConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel,
+  cancelLabel,
   variant = "danger",
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const { t } = useTranslation();
   const cancelBtnRef = useRef<HTMLButtonElement>(null);
   const descriptionId = useId();
 
@@ -63,14 +65,14 @@ export function ConfirmDialog({
             className="confirm-dialog__btn confirm-dialog__btn--cancel"
             onClick={onCancel}
           >
-            {cancelLabel}
+            {cancelLabel ?? t("common.cancel")}
           </button>
           <button
             type="button"
             className={`confirm-dialog__btn confirm-dialog__btn--confirm confirm-dialog__btn--${variant}`}
             onClick={onConfirm}
           >
-            {confirmLabel}
+            {confirmLabel ?? t("common.confirm")}
           </button>
         </div>
     </Dialog>

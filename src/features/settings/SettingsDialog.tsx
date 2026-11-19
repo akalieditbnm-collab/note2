@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { Icon } from "../../components/Icon";
+import { errorText, useTranslation } from "../../i18n";
+import { APP_VERSION } from "../../version";
+import { LOCALE_LABELS, SUPPORTED_LOCALES, type Locale } from "../../i18n/locales";
 import type { BackupProgress, BackupStatus } from "../export/useNotesBackup";
 import type { MarkdownImportStatus } from "../export/useMarkdownImport";
 import { ACCENT_PRESETS, isValidHex, normalizeHex } from "../theme/accent";
@@ -16,6 +19,8 @@ type SettingsDialogProps = {
   accentColorError: string | null;
   spellcheck: SpellcheckPreference;
   spellcheckError: string | null;
+  language: Locale;
+  languageError: string | null;
   backupStatus: BackupStatus;
   backupProgress: BackupProgress;
   backupDestination: string | null;
@@ -27,6 +32,7 @@ type SettingsDialogProps = {
   onThemeChange: (preference: ThemePreference) => void;
   onAccentColorChange: (hex: string) => void;
   onSpellcheckChange: (preference: SpellcheckPreference) => void;
+  onLanguageChange: (locale: Locale) => void;
   onStartBackup: () => void;
   onOpenBackupFolder: () => void;
   onResetBackup: () => void;
@@ -34,17 +40,6 @@ type SettingsDialogProps = {
   onResetMarkdownImport: () => void;
   onClose: () => void;
 };
-
-const themeOptions: Array<{ value: ThemePreference; label: string }> = [
-  { value: "system", label: "System" },
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-];
-
-const spellcheckOptions: Array<{ value: SpellcheckPreference; label: string }> = [
-  { value: "system", label: "System" },
-  { value: "off", label: "Off" },
-];
 
 export function SettingsDialog({
   open,
@@ -55,6 +50,8 @@ export function SettingsDialog({
   accentColorError,
   spellcheck,
   spellcheckError,
+  language,
+  languageError,
   backupStatus,
   backupProgress,
   backupDestination,
@@ -66,6 +63,7 @@ export function SettingsDialog({
   onThemeChange,
   onAccentColorChange,
   onSpellcheckChange,
+  onLanguageChange,
   onStartBackup,
   onOpenBackupFolder,
   onResetBackup,
@@ -73,6 +71,7 @@ export function SettingsDialog({
   onResetMarkdownImport,
   onClose,
 }: SettingsDialogProps) {
+  const { t } = useTranslation();
   const dialogRef = useRef<HTMLDivElement>(null);
   const [hexInput, setHexInput] = useState(accentColor.toUpperCase());
   const [storageInfo, setStorageInfo] = useState<StorageInfo | null>(null);
@@ -82,6 +81,17 @@ export function SettingsDialog({
     kind: "success" | "error";
     message: string;
   } | null>(null);
+
+  const themeOptions: Array<{ value: ThemePreference; label: string }> = [
+    { value: "system", label: t("settings.themeSystem") },
+    { value: "light", label: t("settings.themeLight") },
+    { value: "dark", label: t("settings.themeDark") },
+  ];
+
+  const spellcheckOptions: Array<{ value: SpellcheckPreference; label: string }> = [
+    { value: "system", label: t("settings.spellcheckSystem") },
+    { value: "off", label: t("settings.spellcheckOff") },
+  ];
 
   useEffect(() => {
     setHexInput(accentColor.toUpperCase());
@@ -99,13 +109,15 @@ export function SettingsDialog({
       (reason: unknown) => {
         if (active) {
           setStorageInfo(null);
-          setStorageError(`Could not load storage locations: ${reason instanceof Error ? reason.message : String(reason)}`);
+          setStorageError(t("settings.storageLoadFailed", { reason: errorText(reason) }));
         }
       },
     );
     return () => {
       active = false;
     };
+    // Re-read storage locations every time the dialog opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   useEffect(() => {
@@ -157,12 +169,12 @@ export function SettingsDialog({
   const copyStoragePath = async (target: "data" | "backup", path: string) => {
     try {
       await navigator.clipboard.writeText(path);
-      setStorageFeedback({ target, kind: "success", message: "Path copied." });
+      setStorageFeedback({ target, kind: "success", message: t("settings.pathCopied") });
     } catch (reason) {
       setStorageFeedback({
         target,
         kind: "error",
-        message: `Could not copy path: ${reason instanceof Error ? reason.message : String(reason)}`,
+        message: t("settings.pathCopyFailed", { reason: errorText(reason) }),
       });
     }
   };
@@ -172,12 +184,12 @@ export function SettingsDialog({
       await (target === "data"
         ? storageApi.openDataFolder()
         : storageApi.openBackupFolder());
-      setStorageFeedback({ target, kind: "success", message: "Folder opened." });
+      setStorageFeedback({ target, kind: "success", message: t("settings.folderOpened") });
     } catch (reason) {
       setStorageFeedback({
         target,
         kind: "error",
-        message: `Could not open folder: ${reason instanceof Error ? reason.message : String(reason)}`,
+        message: t("settings.folderOpenFailed", { reason: errorText(reason) }),
       });
     }
   };
@@ -195,30 +207,30 @@ export function SettingsDialog({
         tabIndex={-1}
       >
         <header className="settings__header">
-          <h1 id="settings-title">Settings</h1>
-          <button type="button" aria-label="Close settings" onClick={close}>
+          <h1 id="settings-title">{t("settings.title")}</h1>
+          <button type="button" aria-label={t("settings.close")} onClick={close}>
             <Icon name="x" />
           </button>
         </header>
 
         <div className="settings__body">
           <section className="settings__section settings__about" aria-labelledby="settings-about">
-            <h2 id="settings-about">About</h2>
+            <h2 id="settings-about">{t("settings.about")}</h2>
             <div className="settings__about-product">
               <img src="/app-icon.svg" width="96" height="96" alt="" />
               <div>
-                <strong>LocalNote</strong>
-                <span>Version 1.1.2</span>
-                <p>Fast, private notes stored only on this device. No account or cloud service.</p>
+                <strong>{t("app.name")}</strong>
+                <span>{t("settings.version", { version: APP_VERSION })}</span>
+                <p>{t("app.tagline")}</p>
               </div>
             </div>
           </section>
 
           <section className="settings__section" aria-labelledby="settings-appearance">
-            <h2 id="settings-appearance">Appearance</h2>
+            <h2 id="settings-appearance">{t("settings.appearance")}</h2>
             <fieldset>
-              <legend>Theme</legend>
-              <p className="settings__field-description">Choose how LocalNote looks.</p>
+              <legend>{t("settings.theme")}</legend>
+              <p className="settings__field-description">{t("settings.themeDescription")}</p>
               <div className="settings__options">
                 {themeOptions.map((option) => (
                   <label key={option.value}>
@@ -236,12 +248,40 @@ export function SettingsDialog({
             </fieldset>
             {themeError && <p className="settings__error" role="alert">{themeError}</p>}
 
-            <fieldset className="settings__accent-fieldset">
-              <legend>Accent Color</legend>
+            <fieldset className="settings__language-fieldset">
+              <legend>{t("settings.language")}</legend>
               <p className="settings__field-description">
-                Choose a color for active highlights, buttons, and note accents.
+                {t("settings.languageDescription")}
               </p>
-              <div className="settings__accent-presets" role="radiogroup" aria-label="Accent color presets">
+              <div className="settings__options settings__options--language">
+                {SUPPORTED_LOCALES.map((option) => (
+                  <label
+                    key={option}
+                    className="settings__language-option"
+                    dir={option === "ar" ? "rtl" : "ltr"}
+                  >
+                    <input
+                      type="radio"
+                      name="language"
+                      value={option}
+                      checked={language === option}
+                      onChange={() => onLanguageChange(option)}
+                    />
+                    <span>{LOCALE_LABELS[option]}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            {languageError && (
+              <p className="settings__error" role="alert">{t("settings.languageSaveFailed")}</p>
+            )}
+
+            <fieldset className="settings__accent-fieldset">
+              <legend>{t("settings.accentColor")}</legend>
+              <p className="settings__field-description">
+                {t("settings.accentDescription")}
+              </p>
+              <div className="settings__accent-presets" role="radiogroup" aria-label={t("settings.accentPresets")}>
                 {ACCENT_PRESETS.map((preset) => {
                   const isSelected = normalizeHex(accentColor) === normalizeHex(preset.hex);
                   return (
@@ -283,7 +323,7 @@ export function SettingsDialog({
               <div className="settings__accent-custom">
                 <label
                   className="settings__accent-picker-button"
-                  title="Choose custom color with color picker"
+                  title={t("settings.accentPickerTitle")}
                 >
                   <input
                     type="color"
@@ -292,7 +332,7 @@ export function SettingsDialog({
                       onAccentColorChange(e.target.value);
                       setHexInput(e.target.value.toUpperCase());
                     }}
-                    aria-label="Color picker"
+                    aria-label={t("settings.colorPicker")}
                   />
                   <span
                     className="settings__accent-picker-preview"
@@ -310,6 +350,7 @@ export function SettingsDialog({
                   placeholder="#3B6FE5"
                   maxLength={7}
                   spellCheck={false}
+                  dir="ltr"
                   onChange={(e) => {
                     const val = e.target.value;
                     setHexInput(val.toUpperCase());
@@ -324,7 +365,7 @@ export function SettingsDialog({
                       setHexInput(normalizeHex(hexInput).toUpperCase());
                     }
                   }}
-                  aria-label="Custom hex color code"
+                  aria-label={t("settings.hexLabel")}
                 />
               </div>
             </fieldset>
@@ -332,11 +373,11 @@ export function SettingsDialog({
           </section>
 
           <section className="settings__section" aria-labelledby="settings-editor">
-            <h2 id="settings-editor">Editor</h2>
+            <h2 id="settings-editor">{t("settings.editor")}</h2>
             <fieldset>
-              <legend>Spellcheck</legend>
+              <legend>{t("settings.spellcheck")}</legend>
               <p className="settings__field-description">
-                Use the local system spellchecker or turn it off.
+                {t("settings.spellcheckDescription")}
               </p>
               <div className="settings__options">
                 {spellcheckOptions.map((option) => (
@@ -357,9 +398,9 @@ export function SettingsDialog({
           </section>
 
           <section className="settings__section" aria-labelledby="settings-storage">
-            <h2 id="settings-storage">Storage</h2>
+            <h2 id="settings-storage">{t("settings.storage")}</h2>
             <p className="settings__field-description">
-              LocalNote keeps working data and Markdown backups in separate locations.
+              {t("settings.storageDescription")}
             </p>
 
             {storageInfo ? (
@@ -367,45 +408,45 @@ export function SettingsDialog({
                 <article className="settings__storage-card">
                   <div className="settings__storage-heading">
                     <div>
-                      <strong>Live app data</strong>
-                      <span>Notes, settings, and app working files</span>
+                      <strong>{t("settings.liveData")}</strong>
+                      <span>{t("settings.liveDataSubtitle")}</span>
                     </div>
-                    <span className="settings__storage-badge">Local</span>
+                    <span className="settings__storage-badge">{t("settings.badgeLocal")}</span>
                   </div>
-                  <code className="settings__storage-path" title={storageInfo.dataRoot}>
+                  <code className="settings__storage-path" dir="ltr" title={storageInfo.dataRoot}>
                     {storageInfo.dataRoot}
                   </code>
                   <dl className="settings__storage-details">
                     <div>
-                      <dt>Database</dt>
-                      <dd title={storageInfo.databasePath}>{storageInfo.databasePath}</dd>
+                      <dt>{t("settings.database")}</dt>
+                      <dd dir="ltr" title={storageInfo.databasePath}>{storageInfo.databasePath}</dd>
                     </div>
                     <div>
-                      <dt>WebView</dt>
-                      <dd title={storageInfo.webviewDataPath}>{storageInfo.webviewDataPath}</dd>
+                      <dt>{t("settings.webview")}</dt>
+                      <dd dir="ltr" title={storageInfo.webviewDataPath}>{storageInfo.webviewDataPath}</dd>
                     </div>
                   </dl>
                   <p className="settings__storage-note">
-                    The WebView folder contains the app cache and interface preferences.
+                    {t("settings.webviewNote")}
                   </p>
                   <div className="settings__storage-actions">
                     <button
                       type="button"
                       className="settings__button settings__button--secondary"
-                      aria-label="Open live app data folder"
+                      aria-label={t("settings.openDataFolder")}
                       onClick={() => void openStorageFolder("data")}
                     >
                       <Icon name="folder-plus" />
-                      Open folder
+                      {t("common.openFolder")}
                     </button>
                     <button
                       type="button"
                       className="settings__button settings__button--secondary"
-                      aria-label="Copy live app data path"
+                      aria-label={t("settings.copyDataPath")}
                       onClick={() => void copyStoragePath("data", storageInfo.dataRoot)}
                     >
                       <Icon name="copy" />
-                      Copy path
+                      {t("common.copyPath")}
                     </button>
                   </div>
                   {storageFeedback?.target === "data" && (
@@ -421,32 +462,34 @@ export function SettingsDialog({
                 <article className="settings__storage-card">
                   <div className="settings__storage-heading">
                     <div>
-                      <strong>Markdown backups</strong>
-                      <span>Readable copies created with Backup all notes</span>
+                      <strong>{t("settings.markdownBackups")}</strong>
+                      <span>{t("settings.markdownBackupsSubtitle")}</span>
                     </div>
-                    <span className="settings__storage-badge settings__storage-badge--backup">Documents</span>
+                    <span className="settings__storage-badge settings__storage-badge--backup">
+                      {t("settings.badgeDocuments")}
+                    </span>
                   </div>
-                  <code className="settings__storage-path" title={storageInfo.backupPath}>
+                  <code className="settings__storage-path" dir="ltr" title={storageInfo.backupPath}>
                     {storageInfo.backupPath}
                   </code>
                   <div className="settings__storage-actions">
                     <button
                       type="button"
                       className="settings__button settings__button--secondary"
-                      aria-label="Open Markdown backup folder"
+                      aria-label={t("settings.openBackupFolder")}
                       onClick={() => void openStorageFolder("backup")}
                     >
                       <Icon name="folder-plus" />
-                      Open folder
+                      {t("common.openFolder")}
                     </button>
                     <button
                       type="button"
                       className="settings__button settings__button--secondary"
-                      aria-label="Copy Markdown backup path"
+                      aria-label={t("settings.copyBackupPath")}
                       onClick={() => void copyStoragePath("backup", storageInfo.backupPath)}
                     >
                       <Icon name="copy" />
-                      Copy path
+                      {t("common.copyPath")}
                     </button>
                   </div>
                   {storageFeedback?.target === "backup" && (
@@ -462,14 +505,16 @@ export function SettingsDialog({
             ) : storageError ? (
               <p className="settings__error" role="alert">{storageError}</p>
             ) : (
-              <p className="settings__storage-loading" role="status">Loading storage locations…</p>
+              <p className="settings__storage-loading" role="status">{t("settings.storageLoading")}</p>
             )}
           </section>
 
           <section className="settings__section" aria-labelledby="settings-backup">
-            <h2 id="settings-backup">Backup</h2>
+            <h2 id="settings-backup">{t("settings.backup")}</h2>
             <p className="settings__field-description">
-              Export all your notes as Markdown files into the <code>Documents/LocalNote Backups</code> folder.
+              {t("settings.backupDescription")}{" "}
+              <code>Documents/LocalNote Backups</code>{" "}
+              {t("settings.backupDescriptionTail")}
             </p>
 
             {backupStatus === "idle" && (
@@ -482,7 +527,7 @@ export function SettingsDialog({
                   <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M8 2v8M4.5 7.5L8 11l3.5-3.5M2.5 13.5h11" />
                   </svg>
-                  <span>Backup all notes</span>
+                  <span>{t("settings.backupAll")}</span>
                 </button>
               </div>
             )}
@@ -494,8 +539,11 @@ export function SettingsDialog({
                   <div className="settings__backup-progress-text">
                     <strong>
                       {backupProgress.total > 0
-                        ? `Exporting note ${backupProgress.current} of ${backupProgress.total}…`
-                        : "Preparing backup…"}
+                        ? t("settings.backupProgress", {
+                            current: backupProgress.current,
+                            total: backupProgress.total,
+                          })
+                        : t("settings.backupPreparing")}
                     </strong>
                     <span className="settings__backup-note-title" title={backupProgress.noteTitle}>
                       {backupProgress.noteTitle}
@@ -528,12 +576,14 @@ export function SettingsDialog({
                     </svg>
                   </div>
                   <div className="settings__backup-success-details">
-                    <strong>Backup complete!</strong>
+                    <strong>{t("settings.backupComplete")}</strong>
                     <p>
-                      {backupExportedCount} {backupExportedCount === 1 ? "note" : "notes"} exported to:
+                      {backupExportedCount === 1
+                        ? t("settings.backupExportedOne")
+                        : t("settings.backupExportedOther", { count: backupExportedCount })}
                     </p>
                     {backupDestination && (
-                      <code className="settings__backup-path" title={backupDestination}>
+                      <code className="settings__backup-path" dir="ltr" title={backupDestination}>
                         {backupDestination}
                       </code>
                     )}
@@ -548,14 +598,14 @@ export function SettingsDialog({
                     <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <path d="M1.5 3.5h4l1.5 2h7.5v8H1.5z" />
                     </svg>
-                    <span>Open Folder</span>
+                    <span>{t("settings.backupOpenFolder")}</span>
                   </button>
                   <button
                     type="button"
                     className="settings__button settings__button--secondary"
                     onClick={onResetBackup}
                   >
-                    Backup Again
+                    {t("settings.backupAgain")}
                   </button>
                 </div>
               </div>
@@ -569,28 +619,32 @@ export function SettingsDialog({
                   className="settings__button settings__button--primary"
                   onClick={onStartBackup}
                 >
-                  Retry Backup
+                  {t("settings.backupRetry")}
                 </button>
               </div>
             )}
 
             <div className="settings__import-markdown">
-              <h3>Import Markdown</h3>
+              <h3>{t("settings.importMarkdown")}</h3>
               <p className="settings__field-description">
-                Choose one or more <code>.md</code> files. Each file becomes a new top-level note.
+                {t("settings.importDescription")}
               </p>
               {importStatus === "success" ? (
                 <div className="settings__backup-success settings__import-feedback" role="status" aria-live="polite">
                   <div className="settings__backup-success-details">
-                    <strong>Import complete!</strong>
-                    <p>{importCount} {importCount === 1 ? "note" : "notes"} imported.</p>
+                    <strong>{t("settings.importComplete")}</strong>
+                    <p>
+                      {importCount === 1
+                        ? t("settings.importedOne")
+                        : t("settings.importedOther", { count: importCount })}
+                    </p>
                   </div>
                   <button
                     type="button"
                     className="settings__button settings__button--secondary"
                     onClick={onResetMarkdownImport}
                   >
-                    Import More
+                    {t("settings.importMore")}
                   </button>
                 </div>
               ) : (
@@ -602,7 +656,7 @@ export function SettingsDialog({
                     disabled={importStatus === "in_progress"}
                   >
                     {importStatus === "in_progress" && <span className="settings__backup-spinner" aria-hidden="true" />}
-                    <span>{importStatus === "in_progress" ? "Importing Markdown…" : "Import Markdown"}</span>
+                    <span>{importStatus === "in_progress" ? t("settings.importing") : t("settings.importMarkdown")}</span>
                   </button>
                   {importStatus === "error" && (
                     <div className="settings__backup-error settings__import-feedback" role="alert">
@@ -612,7 +666,7 @@ export function SettingsDialog({
                         className="settings__button settings__button--secondary"
                         onClick={onStartMarkdownImport}
                       >
-                        Retry Import
+                        {t("settings.importRetry")}
                       </button>
                     </div>
                   )}
@@ -623,9 +677,9 @@ export function SettingsDialog({
 
         </div>
         <footer className="settings__footer">
-          <span className="settings__maker-credit">by ea.</span>
+          <span className="settings__maker-credit">{t("settings.makerCredit")}</span>
           <button type="button" className="settings__button settings__button--primary" onClick={close}>
-            Close
+            {t("common.close")}
           </button>
         </footer>
       </div>

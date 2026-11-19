@@ -164,6 +164,21 @@ fn get_spellcheck(
 }
 
 #[tauri::command]
+fn get_language(
+    state: tauri::State<'_, DatabaseState>,
+) -> Result<settings::LanguagePreference, String> {
+    settings::get_language(&state).map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn set_language(
+    state: tauri::State<'_, DatabaseState>,
+    language: settings::LanguagePreference,
+) -> Result<settings::LanguagePreference, String> {
+    settings::set_language(&state, language).map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 fn set_spellcheck(
     state: tauri::State<'_, DatabaseState>,
     preference: settings::SpellcheckPreference,
@@ -418,6 +433,8 @@ pub fn run() {
             set_theme,
             get_spellcheck,
             set_spellcheck,
+            get_language,
+            set_language,
             get_accent_color,
             set_accent_color,
             list_trash,

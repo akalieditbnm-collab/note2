@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 const THEME_KEY: &str = "theme";
 const SPELLCHECK_KEY: &str = "spellcheck";
 const ACCENT_COLOR_KEY: &str = "accent_color";
+const LANGUAGE_KEY: &str = "language";
 const WINDOW_STATE_KEY: &str = "window_state";
 pub(crate) const DEFAULT_ACCENT_COLOR: &str = "#3b6fe5";
 
@@ -40,6 +41,42 @@ pub(crate) enum ThemePreference {
     System,
     Light,
     Dark,
+}
+
+/// UI language. Stored as an IETF-ish short tag so the frontend can map it
+/// straight onto its own `Locale` union.
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub(crate) enum LanguagePreference {
+    En,
+    Ar,
+}
+
+impl LanguagePreference {
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::En => "en",
+            Self::Ar => "ar",
+        }
+    }
+
+    fn parse(value: &str) -> Result<Self, DatabaseError> {
+        // Accept regional variants such as `ar-EG` / `en-US` from older builds
+        // or hand-edited databases by matching on the primary subtag only.
+        let primary = value
+            .split(['-', '_'])
+            .next()
+            .unwrap_or(value)
+            .trim()
+            .to_ascii_lowercase();
+        match primary.as_str() {
+            "en" => Ok(Self::En),
+            "ar" => Ok(Self::Ar),
+            _ => Err(DatabaseError::message(format!(
+                "Unsupported language preference '{value}'"
+            ))),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, Serialize)]
@@ -115,6 +152,36 @@ pub(crate) fn set_theme(
         "INSERT INTO settings (key, value) VALUES (?1, ?2)
          ON CONFLICT(key) DO UPDATE SET value = excluded.value",
         params![THEME_KEY, preference.as_str()],
+    )?;
+    Ok(preference)
+}
+
+pub(crate) fn get_language(state: &DatabaseState) -> Result<LanguagePreference, DatabaseError> {
+    let connection = database::connection(state)?;
+    let stored = connection
+        .query_row(
+            "SELECT value FROM settings WHERE key = ?1",
+            [LANGUAGE_KEY],
+            |row| row.get::<_, String>(0),
+        )
+        .optional()?;
+
+    stored
+        .as_deref()
+        .map(LanguagePreference::parse)
+        .transpose()
+        .map(|preference| preference.unwrap_or(LanguagePreference::En))
+}
+
+pub(crate) fn set_language(
+    state: &DatabaseState,
+    preference: LanguagePreference,
+) -> Result<LanguagePreference, DatabaseError> {
+    let connection = database::connection(state)?;
+    connection.execute(
+        "INSERT INTO settings (key, value) VALUES (?1, ?2)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        params![LANGUAGE_KEY, preference.as_str()],
     )?;
     Ok(preference)
 }
@@ -258,6 +325,47 @@ mod tests {
             .unwrap();
 
         assert!(get_theme(&state).is_err());
+    }
+
+    #[test]
+    fn language_defaults_to_english_and_persists_valid_preferences() {
+        let directory = TempDir::new().unwrap();
+        let state = database::initialize(&directory.path().join("localnote.db")).unwrap();
+        assert_eq!(get_language(&state).unwrap(), LanguagePreference::En);
+
+        assert_eq!(
+            set_language(&state, LanguagePreference::Ar).unwrap(),
+            LanguagePreference::Ar
+        );
+        let reopened = database::initialize(&directory.path().join("localnote.db")).unwrap();
+        assert_eq!(get_language(&reopened).unwrap(), LanguagePreference::Ar);
+    }
+
+    #[test]
+    fn regional_language_tags_are_accepted() {
+        assert_eq!(
+            LanguagePreference::parse("ar-EG").unwrap(),
+            LanguagePreference::Ar
+        );
+        assert_eq!(
+            LanguagePreference::parse("EN_us").unwrap(),
+            LanguagePreference::En
+        );
+    }
+
+    #[test]
+    fn invalid_stored_language_is_reported_instead_of_silently_applied() {
+        let directory = TempDir::new().unwrap();
+        let state = database::initialize(&directory.path().join("localnote.db")).unwrap();
+        let connection = database::connection(&state).unwrap();
+        connection
+            .execute(
+                "INSERT INTO settings (key, value) VALUES (?1, ?2)",
+                params![LANGUAGE_KEY, "klingon"],
+            )
+            .unwrap();
+
+        assert!(get_language(&state).is_err());
     }
 
     #[test]

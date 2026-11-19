@@ -1,5 +1,6 @@
 import type { PartialBlock } from "@blocknote/core";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { tGlobal } from "../../i18n";
 import { documentApi } from "../editor/api";
 import { parseDocument } from "../editor/documentParsing";
 import { exportApi } from "./api";
@@ -47,9 +48,7 @@ export function useMarkdownExport(
       try {
         if (!(await flush())) {
           setStatus("error");
-          setError(
-            "Export stopped because the latest edits could not be saved. Your note remains open and unchanged.",
-          );
+          setError(tGlobal("error.exportFlushFailed"));
           return false;
         }
 
@@ -78,7 +77,7 @@ export function useMarkdownExport(
       } catch (reason) {
         setStatus("error");
         setError(
-          `Could not export this page. The original note was not changed. ${errorMessage(reason)}`,
+          tGlobal("error.exportFailed", { reason: errorMessage(reason) }),
         );
         return false;
       } finally {
